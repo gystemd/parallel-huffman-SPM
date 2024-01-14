@@ -10,6 +10,6 @@ std::unordered_map<char, int> huffman_seq::count_frequency() {
 
 encoded_t huffman_seq::encode_string() {
   encoded_t encoded;
-  for (char c : text) {encoded->push_back(codes[c]);}
+  for (char c : text) {encoded.push_back(codes[c]);}
   return encoded;
 }

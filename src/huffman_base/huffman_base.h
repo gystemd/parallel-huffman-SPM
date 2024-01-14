@@ -11,7 +11,7 @@
 #ifndef HUFFMAN_BASE_H
 #define HUFFMAN_BASE_H
 
-typedef std::vector<std::vector<bool>>* encoded_t;
+typedef std::vector<std::vector<bool>*> encoded_t;
 
 class huffman_base {
   struct huffman_node {
@@ -27,7 +27,7 @@ class huffman_base {
   encoded_t encoded;
   std::unordered_map<char, int> freq;
   huffman_node *root;
-  std::unordered_map<char, std::vector<bool>> codes;
+  std::unordered_map<char, std::vector<bool>*> codes;
 
  public:
   huffman_base(std::string input_file, std::string output_file)
@@ -35,7 +35,7 @@ class huffman_base {
 
   huffman_node *build_tree();
   std::string read_file();
-  std::unordered_map<char, std::vector<bool>> build_codes();
+  std::unordered_map<char, std::vector<bool>*> build_codes();
   std::string decode();
   void run();
   void write_file();

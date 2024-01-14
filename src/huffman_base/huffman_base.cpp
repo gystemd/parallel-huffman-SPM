@@ -43,18 +43,23 @@ huffman_base::huffman_node *huffman_base::build_tree() {
   return pq.top();
 }
 
-std::unordered_map<char, std::vector<bool>> huffman_base::build_codes() {
-  std::unordered_map<char, std::vector<bool>> codes;
-  std::function<void(huffman_node *, std::vector<bool>)> build_codes =
-      [&](huffman_node *node, std::vector<bool> prefix) {
-        if (!node) return;
-        if (node->data != '\0') codes[node->data] = prefix;
-        prefix.push_back(0);
-        build_codes(node->left, prefix);
-        prefix.back() = 1;
-        build_codes(node->right, prefix);
+std::unordered_map<char, std::vector<bool>*> huffman_base::build_codes() {
+  std::unordered_map<char, std::vector<bool>*> codes;
+  std::function<void(huffman_node *, std::vector<bool> *)> build_codes =
+      [&](huffman_node *node, std::vector<bool> *code) {
+        if (node->left == nullptr && node->right == nullptr) {
+          codes[node->data] = code;
+          return;
+        }
+        std::vector<bool> *left_code = new std::vector<bool>(*code);
+        left_code->push_back(false);
+        build_codes(node->left, left_code);
+        std::vector<bool> *right_code = new std::vector<bool>(*code);
+        right_code->push_back(true);
+        build_codes(node->right, right_code);
       };
-  build_codes(root, std::vector<bool>());
+  std::vector<bool> *code = new std::vector<bool>();
+  build_codes(root, code);
   return codes;
 }
 
