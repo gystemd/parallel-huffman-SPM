@@ -34,7 +34,7 @@ encoded_t huffman_thread::encode_string() {
     long time_elapsed;
     std::vector<std::thread> threads(num_threads);
     auto encoded_parts =
-        std::make_unique<std::vector<std::vector<std::vector<bool>>>>(
+        std::make_unique<std::vector<std::vector<std::vector<bool>*>>>(
             num_threads);
 
     int chunk_size = text.size() / num_threads;
@@ -46,7 +46,7 @@ encoded_t huffman_thread::encode_string() {
       auto &encoded_part = encoded_parts->at(i);
       encoded_part.reserve(end - start);
 
-      threads[i] = std::thread([&, i, start, end]() {
+      threads[i] = std::thread([&, start, end]() {
         for (int j = start; j < end; ++j){
           encoded_part.emplace_back(codes[text[j]]);
           // std::cout<<"Thread "<<i<<std::endl;
