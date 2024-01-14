@@ -11,6 +11,8 @@
 #ifndef HUFFMAN_BASE_H
 #define HUFFMAN_BASE_H
 
+typedef std::vector<std::vector<bool>>* encoded_t;
+
 class huffman_base {
   struct huffman_node {
     char data;
@@ -20,12 +22,12 @@ class huffman_base {
     huffman_node(char data, int frequency)
         : data(data), frequency(frequency), left(nullptr), right(nullptr) {}
   };
-
  protected:
-  std::string input_file, output_file, text, encoded, decoded;
+  std::string input_file, output_file, text, decoded;
+  encoded_t encoded;
   std::unordered_map<char, int> freq;
   huffman_node *root;
-  std::unordered_map<char, std::string> codes;
+  std::unordered_map<char, std::vector<bool>> codes;
 
  public:
   huffman_base(std::string input_file, std::string output_file)
@@ -33,13 +35,13 @@ class huffman_base {
 
   huffman_node *build_tree();
   std::string read_file();
-  std::unordered_map<char, std::string> build_codes();
+  std::unordered_map<char, std::vector<bool>> build_codes();
   std::string decode();
   void run();
   void write_file();
 
   virtual std::unordered_map<char, int> count_frequency() = 0;
-  virtual std::string encode_string() = 0;
+  virtual encoded_t encode_string() = 0;
 
   virtual ~huffman_base(){
     if(!root) return;

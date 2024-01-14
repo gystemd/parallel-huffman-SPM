@@ -43,19 +43,18 @@ huffman_base::huffman_node *huffman_base::build_tree() {
   return pq.top();
 }
 
-std::unordered_map<char, std::string> huffman_base::build_codes() {
-  std::unordered_map<char, std::string> codes;
-  std::function<void(huffman_node *, std::string)> encode =
-      [&](huffman_node *node, std::string code) {
-        if (node == nullptr) return;
-        if (node->left == nullptr && node->right == nullptr) {
-          codes[node->data] = code;
-        }
-        encode(node->left, code + "0");
-        encode(node->right, code + "1");
+std::unordered_map<char, std::vector<bool>> huffman_base::build_codes() {
+  std::unordered_map<char, std::vector<bool>> codes;
+  std::function<void(huffman_node *, std::vector<bool>)> build_codes =
+      [&](huffman_node *node, std::vector<bool> prefix) {
+        if (!node) return;
+        if (node->data != '\0') codes[node->data] = prefix;
+        prefix.push_back(0);
+        build_codes(node->left, prefix);
+        prefix.back() = 1;
+        build_codes(node->right, prefix);
       };
-
-  encode(root, "");
+  build_codes(root, std::vector<bool>());
   return codes;
 }
 
@@ -92,24 +91,24 @@ void huffman_base::write_file() {
     return;
   }
 
-  for (size_t i = 0; i < encoded.size(); i += 8) {
-    std::bitset<8> bits(encoded.substr(i, 8));
-    unsigned char byte = bits.to_ulong();
-    file.write(reinterpret_cast<const char *>(&byte), sizeof(byte));
-  }
+  // for (size_t i = 0; i < encoded.size(); i += 8) {
+  //   std::bitset<8> bits(encoded.substr(i, 8));
+  //   unsigned char byte = bits.to_ulong();
+  //   file.write(reinterpret_cast<const char *>(&byte), sizeof(byte));
+  // }
 
   file.close();
 }
 
 std::string huffman_base::decode() {
   std::string decoded = "";
-  huffman_node *current = root;
-  for (char c : encoded) {
-    current = c == '0' ? current->left : current->right;
-    if (current->left == nullptr && current->right == nullptr) {
-      decoded += current->data;
-      current = root;
-    }
-  }
+  // huffman_node *current = root;
+  // for (char c : encoded) {
+  //   current = c == '0' ? current->left : current->right;
+  //   if (current->left == nullptr && current->right == nullptr) {
+  //     decoded += current->data;
+  //     current = root;
+  //   }
+  // }
   return decoded;
 }
