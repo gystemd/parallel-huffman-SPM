@@ -1,10 +1,10 @@
 #include "huffman_threads.h"
+
 #include <thread>
 #include <unordered_map>
 
 std::unordered_map<char, int> huffman_thread::count_frequency() {
-  std::unordered_map<char, int>
-      partial_freqs[num_threads];  
+  std::unordered_map<char, int> partial_freqs[num_threads];
   std::unordered_map<char, int> result;
   std::vector<std::thread> thread_mappers(num_threads);
 
@@ -28,29 +28,37 @@ std::unordered_map<char, int> huffman_thread::count_frequency() {
   return result;
 }
 
-std::string huffman_thread::encode_string() {
-  std::string encoded;
+encoded_t huffman_thread::encode_string() {
+  encoded_t encoded;
   {
     long time_elapsed;
     std::vector<std::thread> threads(num_threads);
-    std::vector<std::string> encoded_parts(num_threads);
+    auto encoded_parts =
+        std::make_unique<std::vector<std::vector<std::vector<bool>>>>(
+            num_threads);
 
     int chunk_size = text.size() / num_threads;
 
     for (unsigned int i = 0; i < num_threads; ++i) {
       int start = i * chunk_size;
       int end = (i == num_threads - 1) ? text.size() : start + chunk_size;
+
+      auto &encoded_part = encoded_parts->at(i);
+      encoded_part.reserve(end - start);
+
       threads[i] = std::thread([&, i, start, end]() {
-        for (int j = start; j < end; ++j) encoded_parts[i] += codes[text[j]];
+        for (int j = start; j < end; ++j){
+          encoded_part.emplace_back(codes[text[j]]);
+          // std::cout<<"Thread "<<i<<std::endl;
+        }
       });
     }
 
     for (auto &t : threads) t.join();
 
-    // Combine all the encoded strings
-    for (const auto &part : encoded_parts) encoded += part;
+    // for (auto &part : encoded_parts)
+    //   for (auto &code : part) encoded.push_back(code);
   }
 
-  std::cout<<encoded.size()<<std::endl;
   return encoded;
 }
