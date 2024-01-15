@@ -24,8 +24,11 @@ std::unordered_map<char, int> huffman_ff::count_frequency() {
     return res;
 }
 
-std::string huffman_ff::encode_string() {
-  std::string encoded = "";
-  for (char c : text) encoded += codes[c];
+encoded_t* huffman_ff::encode_string() {
+  encoded_t* encoded = new encoded_t();
+  std::vector<std::vector<bool>*>* encoded_chunk =
+      new std::vector<std::vector<bool>*>();
+  for (char c : text) encoded_chunk->push_back(codes[c]);
+  encoded->push_back(encoded_chunk);
   return encoded;
 }
