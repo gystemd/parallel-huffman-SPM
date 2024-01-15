@@ -25,15 +25,16 @@ class huffman_base {
   };
 
  protected:
-  std::string input_file, output_file, text, decoded;
+  std::string input_file, output_file, text, decoded, benchmark_file;
   encoded_t* encoded;
   std::unordered_map<char, int> freq;
   huffman_node* root;
   std::unordered_map<char, std::vector<bool>*> codes;
+  long read_time, frequency_time, tree_time, code_time, encode_time, write_time;
 
  public:
   huffman_base(std::string input_file, std::string output_file)
-      : input_file(input_file), output_file(output_file) {}
+      : input_file(input_file), output_file(output_file) {benchmark_file= "measurements/sequential/seq.csv";}
 
   huffman_node* build_tree();
   std::string read_file();
@@ -63,6 +64,8 @@ class huffman_base {
       delete encoded;
     }
   }
+
+  void write_benchmark();
 };
 
 #endif  // HUFFMAN_BASE_H

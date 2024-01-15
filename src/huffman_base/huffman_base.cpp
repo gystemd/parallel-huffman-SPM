@@ -64,8 +64,6 @@ std::unordered_map<char, std::vector<bool> *> huffman_base::build_codes() {
 }
 
 void huffman_base::run() {
-  long read_time, frequency_time, tree_time, code_time, encode_time, write_time;
-
   {
     utimer timer("read", &read_time);
     this->text = read_file();
@@ -93,7 +91,8 @@ void huffman_base::run() {
 
   // std::string decoded = decode();
   // if (decoded == text) {
-  //   std::cout << "Decoded text is  the same as the original text." << std::endl;
+  //   std::cout << "Decoded text is  the same as the original text." <<
+  //   std::endl;
   // } else {
   //   return;
   // }
@@ -109,6 +108,7 @@ void huffman_base::run() {
   std::cout << "code: " << code_time << std::endl;
   std::cout << "encode: " << encode_time << std::endl;
   std::cout << "write: " << write_time << std::endl;
+  write_benchmark();
 }
 
 void huffman_base::write_file() {
@@ -151,4 +151,15 @@ std::string huffman_base::decode() {
     }
   }
   return decoded;
+}
+
+void huffman_base::write_benchmark() {
+  std::ofstream file(benchmark_file, std::ios::out | std::ios::app);
+  if (!file) {
+    std::cerr << "Cannot open the benchmark file." << std::endl;
+    return;
+  }
+  file << read_time << "," << frequency_time << "," << tree_time << ","
+       << code_time << "," << encode_time << "," << write_time << std::endl;
+  file.close();
 }

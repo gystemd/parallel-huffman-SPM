@@ -5,5 +5,7 @@ class huffman_seq : public huffman_base {
   std::unordered_map<char, int> count_frequency() override;
   encoded_t* encode_string() override;
   huffman_seq(std::string input_file, std::string output_file)
-    : huffman_base(input_file, output_file) {}
+      : huffman_base(input_file, output_file) {
+    benchmark_file = "measurements/seq.csv";
+  }
 };
