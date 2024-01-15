@@ -64,35 +64,51 @@ std::unordered_map<char, std::vector<bool> *> huffman_base::build_codes() {
 }
 
 void huffman_base::run() {
+  long read_time, frequency_time, tree_time, code_time, encode_time, write_time;
+
   {
-    long elapsed;
-    utimer timer("read", &elapsed);
+    utimer timer("read", &read_time);
     this->text = read_file();
   }
 
   {
-    long elapsed;
-    utimer timer("count frequency", &elapsed);
+    utimer timer("count frequency", &frequency_time);
     this->freq = count_frequency();
   }
 
-  this->root = build_tree();
-  this->codes = build_codes();
+  {
+    utimer timer("build tree", &tree_time);
+    this->root = build_tree();
+  }
 
   {
-    long elapsed;
-    utimer timer("encode", &elapsed);
+    utimer timer("build codes", &code_time);
+    this->codes = build_codes();
+  }
+
+  {
+    utimer timer("encode", &encode_time);
     this->encoded = encode_string();
   }
 
-  std::string decoded = decode();
-  if (decoded == text) {
-    std::cout << "Decoded text is  the same as the original text." << std::endl;
-  } else {
-    return;
+  // std::string decoded = decode();
+  // if (decoded == text) {
+  //   std::cout << "Decoded text is  the same as the original text." << std::endl;
+  // } else {
+  //   return;
+  // }
+
+  {
+    utimer timer("write", &write_time);
+    write_file();
   }
 
-  write_file();
+  std::cout << "read: " << read_time << std::endl;
+  std::cout << "frequency: " << frequency_time << std::endl;
+  std::cout << "tree: " << tree_time << std::endl;
+  std::cout << "code: " << code_time << std::endl;
+  std::cout << "encode: " << encode_time << std::endl;
+  std::cout << "write: " << write_time << std::endl;
 }
 
 void huffman_base::write_file() {
