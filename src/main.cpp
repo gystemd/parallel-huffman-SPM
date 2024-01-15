@@ -1,5 +1,6 @@
 #include "huffman_sequential/huffman_seq.h"
 #include "huffman_threads/huffman_threads.h"
+#include "huffman_ff/huffman_ff.h"
 int main(int argc, char *argv[]) {
   if (argc < 4) {
     std::cout << "Usage: ./huffman_seq <input_file> <output_file> <seq|t|ff> <n_threads>" << std::endl;
@@ -16,8 +17,13 @@ int main(int argc, char *argv[]) {
     int num_threads = argv[4] ? atoi(argv[4]) : std::thread::hardware_concurrency();
     huffman = new huffman_thread(input_file, output_file, num_threads);
   }
+  else if (type == "ff"){
+    int num_threads = argv[4] ? atoi(argv[4]) : std::thread::hardware_concurrency();
+    huffman = new huffman_ff(input_file, output_file, num_threads);
+  }
   else{
-    std::cout<<"not yet implemented"<<std::endl;
+    std::cout << "Usage: ./huffman_seq <input_file> <output_file> <seq|t|ff> <n_threads>" << std::endl;
+    return 1;
   }
   huffman->run();
   return 0;
