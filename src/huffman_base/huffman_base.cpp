@@ -7,6 +7,7 @@
 #include <sstream>
 #include <thread>
 #include <vector>
+
 #include "../utimer.cpp"
 #include "bitset"
 #include "unordered_map"
@@ -17,7 +18,6 @@ std::string huffman_base::read_file() {
   buffer << file.rdbuf();
   return buffer.str();
 }
-
 
 huffman_base::huffman_node *huffman_base::build_tree() {
   struct Compare {
@@ -43,8 +43,8 @@ huffman_base::huffman_node *huffman_base::build_tree() {
   return pq.top();
 }
 
-std::unordered_map<char, std::vector<bool>*> huffman_base::build_codes() {
-  std::unordered_map<char, std::vector<bool>*> codes;
+std::unordered_map<char, std::vector<bool> *> huffman_base::build_codes() {
+  std::unordered_map<char, std::vector<bool> *> codes;
   std::function<void(huffman_node *, std::vector<bool> *)> build_codes =
       [&](huffman_node *node, std::vector<bool> *code) {
         if (node->left == nullptr && node->right == nullptr) {
@@ -62,7 +62,6 @@ std::unordered_map<char, std::vector<bool>*> huffman_base::build_codes() {
   build_codes(root, code);
   return codes;
 }
-
 
 void huffman_base::run() {
   {
@@ -86,6 +85,13 @@ void huffman_base::run() {
     this->encoded = encode_string();
   }
 
+  std::string decoded = decode();
+  if (decoded == text) {
+    std::cout << "Decoded text is  the same as the original text." << std::endl;
+  } else {
+    return;
+  }
+
   write_file();
 }
 
@@ -96,24 +102,37 @@ void huffman_base::write_file() {
     return;
   }
 
-  // for (size_t i = 0; i < encoded.size(); i += 8) {
-  //   std::bitset<8> bits(encoded.substr(i, 8));
-  //   unsigned char byte = bits.to_ulong();
-  //   file.write(reinterpret_cast<const char *>(&byte), sizeof(byte));
-  // }
+  for (size_t i = 0; i < encoded->size(); i += 8) {
+    for (size_t j = 0; j < encoded->at(i)->size(); j++) {
+      std::vector<bool> bits = *encoded->at(i)->at(j);
+      std::bitset<8> bitset;
+      for (size_t k = 0; k < 8; k++) bitset[k] = bits[k];
+      unsigned char byte = bitset.to_ulong();
+      file.write(reinterpret_cast<const char *>(&byte), sizeof(byte));
+    }
+  }
 
   file.close();
 }
 
 std::string huffman_base::decode() {
   std::string decoded = "";
-  // huffman_node *current = root;
-  // for (char c : encoded) {
-  //   current = c == '0' ? current->left : current->right;
-  //   if (current->left == nullptr && current->right == nullptr) {
-  //     decoded += current->data;
-  //     current = root;
-  //   }
-  // }
+  huffman_node *node = root;
+  for (size_t i = 0; i < encoded->size(); i++) {
+    for (size_t j = 0; j < encoded->at(i)->size(); j++) {
+      std::vector<bool> *bits = encoded->at(i)->at(j);
+      for (size_t k = 0; k < bits->size(); k++) {
+        if (bits->at(k)) {
+          node = node->right;
+        } else {
+          node = node->left;
+        }
+        if (node->left == nullptr && node->right == nullptr) {
+          decoded += node->data;
+          node = root;
+        }
+      }
+    }
+  }
   return decoded;
 }

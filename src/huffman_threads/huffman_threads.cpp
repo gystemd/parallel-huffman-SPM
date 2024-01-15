@@ -28,37 +28,27 @@ std::unordered_map<char, int> huffman_thread::count_frequency() {
   return result;
 }
 
-encoded_t huffman_thread::encode_string() {
-  encoded_t encoded;
-  {
-    long time_elapsed;
-    std::vector<std::thread> threads(num_threads);
-    auto encoded_parts =
-        std::make_unique<std::vector<std::vector<std::vector<bool>*>>>(
-            num_threads);
+encoded_t *huffman_thread::encode_string() {
+  std::vector<std::thread> threads(num_threads);
+  auto size = text.length();
+  auto results = new encoded_t(num_threads);
 
-    int chunk_size = text.size() / num_threads;
+  auto encode_executor = [&](size_t tid) {
+    auto chunk_size = size / num_threads;
+    // split the sequence in chunks
+    auto start = tid * chunk_size;
+    auto end = tid == num_threads - 1 ? size : (tid + 1) * chunk_size;
 
-    for (unsigned int i = 0; i < num_threads; ++i) {
-      int start = i * chunk_size;
-      int end = (i == num_threads - 1) ? text.size() : start + chunk_size;
-
-      auto &encoded_part = encoded_parts->at(i);
-      encoded_part.reserve(end - start);
-
-      threads[i] = std::thread([&, start, end]() {
-        for (int j = start; j < end; ++j){
-          encoded_part.emplace_back(codes[text[j]]);
-          // std::cout<<"Thread "<<i<<std::endl;
-        }
-      });
+    results->at(tid) = new std::vector<std::vector<bool> *>();
+    results->at(tid)->reserve(end - start);
+    for (size_t i = start; i < end; i++) {
+      results->at(tid)->push_back(codes[text[i]]);
     }
+  };
 
-    for (auto &t : threads) t.join();
-
-    // for (auto &part : encoded_parts)
-    //   for (auto &code : part) encoded.push_back(code);
-  }
-
-  return encoded;
+  // start and join the threads
+  for (size_t i = 0; i < num_threads; i++)
+    threads[i] = std::thread(encode_executor, i);
+  for (auto &t : threads) t.join();
+  return results;
 }
