@@ -1,46 +1,25 @@
 
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mtick
 import numpy as np
+import pandas as pd
+sequential_data = pd.read_csv('measurements/seq.csv', sep=',', header=None)
+total_time_sequential = sequential_data.iloc[0, 2]
+threads_data = pd.read_csv('measurements/threads.csv', sep=',', header=None)
+# Assuming that the first column is named 'column1' and the second column is 'column2'
+plt.plot(threads_data.iloc[:, 0], threads_data.iloc[:, 2])
+plt.gca().yaxis.set_major_formatter(mtick.FormatStrFormatter('%.0f'))
 
-thread_folders = "measurements/threads/"
-threads = []
-times = []
+plt.xlabel('threads')
+plt.ylabel('total time')
+# save the plot as a file
+plt.savefig('threads.png')
 
-# read the csv file
-thread_num = 2
-with open("measurements/threads.csv", "r") as f:
-    for line in f:
-        threads.append(thread_num)
-        times.append(sum([float(x) for x in line.split(",")]))
-        print (sum([float(x) for x in line.split(",")]))
-        thread_num *= 2
-
-
-x_ticks = np.linspace(min(threads), max(threads), len(threads))
-# plot the data
-plt.plot(threads, times, marker='o')  # Plot points on the x-axis
-plt.xlabel('Number of threads')
-plt.xticks(x_ticks)
-plt.ylabel('Time (us)')
-# plt.yscale('log')
-plt.savefig('figures/threads-IO.png')
 plt.clf()
 
-times = []
-threads = []
-thread_num = 2
-
-with open("measurements/threads.csv", "r") as f:
-    for line in f:
-        threads.append(thread_num)
-        times.append(sum([float(x) for x in line.split(",")[1:-1]]))
-        print (sum([float(x) for x in line.split(",")]))
-        thread_num *= 2
-
-
-plt.plot(threads, times)
-plt.xlabel('Number of threads')
-plt.ylabel('Time (us)')
-plt.yscale('log')
-plt.savefig('figures/threads-nIO.png')
-plt.clf()
+speedup = total_time_sequential / threads_data.iloc[:, 2]
+plt.plot(threads_data.iloc[:, 0], speedup)
+plt.xlabel('threads')
+plt.ylabel('speedup')
+# save the plot as a file
+plt.savefig('speedup.png')

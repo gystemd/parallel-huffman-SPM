@@ -10,7 +10,7 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  int num_char = atoi(argv[1]);
+  unsigned int num_char = atoi(argv[1]);
   std::string output_file = argv[2];
   int srand(123);
   std::string text = "";

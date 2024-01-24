@@ -31,13 +31,16 @@ class huffman_base {
   huffman_node* root;
   std::unordered_map<char, std::vector<bool>*> codes;
   long read_time, frequency_time, tree_time, code_time, encode_time, write_time;
+  long total_time, total_time_nio;
+  int num_threads;
 
  public:
   huffman_base(std::string input_file, std::string output_file)
-      : input_file(input_file), output_file(output_file) {benchmark_file= "measurements/sequential/seq.csv";}
+      : input_file(input_file), output_file(output_file) {}
 
   huffman_node* build_tree();
   std::string read_file();
+  std::string read_encoded_file();
   std::unordered_map<char, std::vector<bool>*> build_codes();
   std::string decode();
   void run();
@@ -48,7 +51,8 @@ class huffman_base {
 
   // virtual ~huffman_base() {
   //   if (root) {
-  //     std::function<void(huffman_node*)> delete_tree = [&](huffman_node* node) {
+  //     std::function<void(huffman_node*)> delete_tree = [&](huffman_node*
+  //     node) {
   //       if (!node) return;
   //       delete_tree(node->left);
   //       delete_tree(node->right);

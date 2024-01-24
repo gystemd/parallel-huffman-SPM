@@ -48,6 +48,7 @@ huffman_base::huffman_node *huffman_base::build_tree() {
 
     pq.push(parent);
   }
+
   return pq.top();
 }
 
@@ -97,6 +98,7 @@ void huffman_base::run() {
     this->encoded = encode_string();
   }
 
+
   // std::string decoded = decode();
   // if (decoded == text) {
   //   std::cout << "Decoded text is  the same as the original text." <<
@@ -110,6 +112,13 @@ void huffman_base::run() {
     write_file();
   }
 
+
+  total_time = read_time + frequency_time + tree_time + code_time +
+               encode_time + write_time;
+
+  total_time_nio = frequency_time + tree_time + code_time + encode_time;
+  std::cout << "Total time: " << total_time << std::endl;
+  std::cout << "Total time without I/O: " << total_time_nio << std::endl;
   write_benchmark();
 }
 
@@ -161,7 +170,30 @@ void huffman_base::write_benchmark() {
     std::cerr << "Cannot open the benchmark file." << std::endl;
     return;
   }
-  file << read_time << "," << frequency_time << "," << tree_time << ","
-       << code_time << "," << encode_time << "," << write_time << std::endl;
+  // file << num_threads << "," << read_time << "," << frequency_time << "," << tree_time << ","
+  //      << code_time << "," << encode_time << "," << write_time << std::endl;
+  file << num_threads << "," << total_time << "," << total_time_nio << std::endl;
   file.close();
+}
+
+std::string huffman_base::read_encoded_file() {
+  std::ifstream in(input_file, std::ios::in | std::ios::binary);
+  std::string seq;
+
+  if (!in.is_open())
+    throw std::runtime_error("Could not open file: " + input_file);
+
+  char byte;
+  while (in.read(&byte, sizeof(byte))) {
+    std::bitset<8> bitset(byte);
+    for (int i = 7; i >= 0; i--) {
+      if (bitset[i])
+        seq += '1';
+      else
+        seq += '0';
+    }
+  }
+
+  in.close();
+  return seq;
 }
