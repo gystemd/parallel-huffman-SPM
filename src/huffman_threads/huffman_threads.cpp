@@ -3,9 +3,9 @@
 #include <thread>
 #include <unordered_map>
 
-std::unordered_map<char, int> huffman_thread::count_frequency() {
-  std::unordered_map<char, int> partial_freqs[num_threads];
-  std::unordered_map<char, int> result;
+std::unordered_map<char, unsigned int> huffman_thread::count_frequency() {
+  std::unordered_map<char, unsigned int> partial_freqs[num_threads];
+  std::unordered_map<char, unsigned int> result;
   std::vector<std::thread> thread_mappers(num_threads);
 
   auto map_executor = [&](size_t tid) {

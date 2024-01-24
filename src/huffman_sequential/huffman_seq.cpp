@@ -3,8 +3,8 @@
 #include <unordered_map>
 // #include "utimer.cpp"
 
-std::unordered_map<char, int> huffman_seq::count_frequency() {
-  std::unordered_map<char, int> freq;
+std::unordered_map<char, unsigned int> huffman_seq::count_frequency() {
+  std::unordered_map<char, unsigned int> freq;
   for (char c : text) {
     freq[c]++;
   }

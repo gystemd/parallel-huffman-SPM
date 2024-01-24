@@ -5,6 +5,10 @@
 #include <ff/parallel_for.hpp>
 #include <unordered_map>
 
+#include "../utimer.cpp"
+
+using namespace std;
+using namespace ff;
 struct Task {
   int task_id;
   int n_encoders;
@@ -80,23 +84,19 @@ Task* Worker(Task* t, ff::ff_node* nn) {
   return t;
 }
 
-std::unordered_map<char, int> huffman_ff::count_frequency() {
-  auto res = std::unordered_map<char, int>();
-
-  auto map_f = [&](const long i, std::unordered_map<char, int>& tempsum) {
+unordered_map<char, unsigned int> huffman_ff::count_frequency() {
+  auto res = unordered_map<char, unsigned int>();
+  auto map_f = [&](const long i, unordered_map<char, unsigned>& tempsum) {
     tempsum[text[i]]++;
   };
 
-  auto red_f = [&](std::unordered_map<char, int>& a,
-                   const std::unordered_map<char, int>& b) {
+  auto red_f = [&](unordered_map<char, unsigned>& a,
+                   const unordered_map<char, unsigned>& b) {
     for (auto& it : b) a[it.first] += it.second;
   };
-
-  auto pf =
-      ff::ParallelForReduce<std::unordered_map<char, int>>((long)num_threads);
-  pf.parallel_reduce(res, std::unordered_map<char, int>(), 0, (long)text.size(),
+  auto pf = ParallelForReduce<unordered_map<char, unsigned>>((long)num_threads);
+  pf.parallel_reduce(res, unordered_map<char, unsigned>(), 0, (long)text.size(),
                      1, map_f, red_f, num_threads);
-
   return res;
 }
 

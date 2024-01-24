@@ -6,3 +6,5 @@ CMakeCache.txt
 Makefile
 figures/*
 measurements/*
+report/*
+!report/main.tex

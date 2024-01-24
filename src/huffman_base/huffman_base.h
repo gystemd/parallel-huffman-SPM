@@ -27,7 +27,7 @@ class huffman_base {
  protected:
   std::string input_file, output_file, text, decoded, benchmark_file;
   encoded_t* encoded;
-  std::unordered_map<char, int> freq;
+  std::unordered_map<char, unsigned int> freq;
   huffman_node* root;
   std::unordered_map<char, std::vector<bool>*> codes;
   long read_time, frequency_time, tree_time, code_time, encode_time, write_time;
@@ -43,27 +43,27 @@ class huffman_base {
   void run();
   void write_file();
 
-  virtual std::unordered_map<char, int> count_frequency() = 0;
+  virtual std::unordered_map<char, unsigned int> count_frequency() = 0;
   virtual encoded_t* encode_string() = 0;
 
-  virtual ~huffman_base() {
-    if (root) {
-      std::function<void(huffman_node*)> delete_tree = [&](huffman_node* node) {
-        if (!node) return;
-        delete_tree(node->left);
-        delete_tree(node->right);
-        delete node;
-      };
-      delete_tree(root);
-    }
-    if (encoded) {
-      for (auto& v : *encoded) {
-        for (auto& code : *v) delete code;
-        delete v;
-      }
-      delete encoded;
-    }
-  }
+  // virtual ~huffman_base() {
+  //   if (root) {
+  //     std::function<void(huffman_node*)> delete_tree = [&](huffman_node* node) {
+  //       if (!node) return;
+  //       delete_tree(node->left);
+  //       delete_tree(node->right);
+  //       delete node;
+  //     };
+  //     delete_tree(root);
+  //   }
+  //   if (encoded) {
+  //     for (auto& v : *encoded) {
+  //       for (auto& code : *v) delete code;
+  //       delete v;
+  //     }
+  //     delete encoded;
+  //   }
+  // }
 
   void write_benchmark();
 };

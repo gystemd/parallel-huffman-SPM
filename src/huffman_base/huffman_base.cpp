@@ -13,13 +13,18 @@
 #include "unordered_map"
 
 std::string huffman_base::read_file() {
-  std::ifstream file(input_file);
-  std::stringstream buffer;
-  buffer << file.rdbuf();
-  return buffer.str();
+    std::ifstream in(input_file);
+    std::string seq;
+
+    if (!in.is_open())
+        throw std::runtime_error("Could not open file: " + input_file);
+    getline(in, seq);
+    in.close();
+    return seq;
 }
 
 huffman_base::huffman_node *huffman_base::build_tree() {
+
   struct Compare {
     bool operator()(huffman_node *left, huffman_node *right) {
       return left->frequency > right->frequency;
@@ -32,12 +37,15 @@ huffman_base::huffman_node *huffman_base::build_tree() {
   while (pq.size() > 1) {
     huffman_node *left = pq.top();
     pq.pop();
+
     huffman_node *right = pq.top();
     pq.pop();
+
     huffman_node *parent =
         new huffman_node('\0', left->frequency + right->frequency);
     parent->left = left;
     parent->right = right;
+
     pq.push(parent);
   }
   return pq.top();
@@ -102,12 +110,6 @@ void huffman_base::run() {
     write_file();
   }
 
-  std::cout << "read: " << read_time << std::endl;
-  std::cout << "frequency: " << frequency_time << std::endl;
-  std::cout << "tree: " << tree_time << std::endl;
-  std::cout << "code: " << code_time << std::endl;
-  std::cout << "encode: " << encode_time << std::endl;
-  std::cout << "write: " << write_time << std::endl;
   write_benchmark();
 }
 
