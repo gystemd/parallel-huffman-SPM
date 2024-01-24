@@ -4,6 +4,7 @@
 \usepackage{lipsum}  % This package is used for creating dummy text.
 \usepackage{algorithm}
 \usepackage{algpseudocode}
+\usepackage{amsmath}
 
 \title{Parallel Huffman}
 \author{Giulio Piva}
@@ -25,13 +26,106 @@ The pseudo code for the huffman algorithm is shown in Algorithm 1
 \begin{algorithm}
 \caption{Huffman code}
 \begin{algorithmic}[1]
-\Procedure{YourProcedure}{}
+\Procedure{huffman\_code}{}
 \State $\textit{sequence} \gets \text{read\_input(file)}$
 \State $\textit{frequency\_map} \gets \text{compute\_frequency(sequence)}$
 \State $\textit{huffman\_tree} \gets \text{build\_huffman\_tree(frequency\_map)}$
-\State $\texit{code\_table} \gets \text{build\_code\_table(huffman\_tree)}$
+% \State $\texit{codes\_table} \gets \text{build\_codes\_table(huffman\_tree)}$
 \State $\textit{encoded\_sequence} \gets \text{encode(sequence, code\_table)}$
 \State $ \textit{return encoded\_sequence}$
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+The first step of the algorithm is to compute the distribution of the characters in the input sequence,
+which is done by counting the frequency of each character. This function has a complexity of $O(n)$,
+where $n$ is the length of the input sequence.
+
+\begin{algorithm}
+\caption{Frequency counting}
+\begin{algorithmic}[1]
+\Procedure{compute\_frequency}{sequence}
+\State $\textit{frequency\_map} \gets \text{empty map}$
+\For{$\text{char} \gets \text{sequence}$}
+\State $\textit{frequency\_map[char]++}$
+\EndFor
+\State $ \textit{return frequency\_map}$
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+After computing the distribution of the characters in input sequence,
+the subsequent step is to build the Huffman tree.
+This process is supported by a priority queue to provide
+efficient access to the nodes with the lowest frequency.
+\begin{algorithm}
+\caption{Huffman tree generation}
+\begin{algorithmic}[1]
+\Procedure{build\_huffman\_tree}{frequency\_map}
+\State queue $\gets$ empty priority queue
+\For{$\text{char} \gets \text{frequency\_map}$}
+\State $\textit{node} \gets \text{node(char, frequency\_map[char], nil, nil)}$
+\State $\text{queue.push(node)}$
+\EndFor
+
+\While{$\text{queue.size()} > 1$}
+\State $\textit{l} \gets \text{queue.pop()}$
+\State $\textit{r} \gets \text{queue.pop()}$
+\State $\textit{node} \gets node(nil, l.freq + r.freq, l, r)$
+\State $\text{queue.push(node)}$
+\EndWhile
+
+\State $ \textit{return queue.pop()}$
+
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+The time complexity of this algorithm is $O(m \log m)$,
+where $m$ is the number of distinct characters in the input sequence.
+In our case, since we are dealing with ASCII characters only,
+m is equal to 256 and therefore the complexity is constant.
+Then, the Huffman tree is traversed to generate the codes for each character
+and save them in a map in order to avoid trasversing the tree for
+every character in the input sequence.
+\begin{algorithm}
+\caption{Codes table generation}
+\begin{algorithmic}[1]
+\Procedure{build\_codes\_table}{root}
+\State $\textit{codes\_table} \gets \text{empty map}$
+\State $\textit{queue} \gets \text{empty queue}$
+\State $\text{queue.push(root)}$
+\While{$\text{queue.size()} > 0$}
+\State $\textit{node} \gets \text{queue.pop()}$
+\If{$\text{node.left} \neq \text{nil}$}
+\State $\text{node.left.code} \gets \text{node.code + 0}$
+\State $\text{queue.push(node.left)}$
+\EndIf
+\If{$\text{node.right} \neq \text{nil}$}
+\State $\text{node.right.code} \gets \text{node.code + 1}$
+\State $\text{queue.push(node.right)}$
+\EndIf
+\If{$\text{node.char} \neq \text{nil}$}
+\State $\textit{codes\_table[node.char]} \gets \text{node.code}$
+\EndIf
+\EndWhile
+\State $ \textit{return codes\_table}$
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+Finally, the input sequence is scanned again and for each character the corresponding
+code is appended to the encoded sequence.
+
+\begin{algorithm}
+\caption{Encoding}
+\begin{algorithmic}[1]
+\Procedure{encode}{sequence, code\_table}
+
+\State $\textit{encoded\_sequence} \gets \text{empty vector of bools}$
+\For{$\text{char} \gets \text{sequence}$}
+\State $\textit{encoded\_sequence.append(code\_table[char])}$
+\EndFor
+\State $ \textit{return encoded\_sequence}$
+\EndProcedure
 \end{algorithmic}
 \end{algorithm}
 
