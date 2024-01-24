@@ -1,0 +1,87 @@
+\documentclass{report}
+
+\usepackage{graphicx}
+\usepackage{lipsum}  % This package is used for creating dummy text.
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\title{Parallel Huffman}
+\author{Giulio Piva}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+\chapter{Problem statement}
+The huffman algorithm is a lossless compression algorithm that uses a variable length code table
+for encoding a source symbol. The code table is derived from the probability of occurrence for each
+possible value of the source symbol. The most frequent symbol is encoded with the shortest code
+and the least frequent symbol is encoded with the longest code.
+The pseudo code for the huffman algorithm is shown in Algorithm 1
+
+\begin{algorithm}
+\caption{Huffman code}
+\begin{algorithmic}[1]
+\Procedure{YourProcedure}{}
+\State $\textit{sequence} \gets \text{read\_input(file)}$
+\State $\textit{frequency\_map} \gets \text{compute\_frequency(sequence)}$
+\State $\textit{huffman\_tree} \gets \text{build\_huffman\_tree(frequency\_map)}$
+\State $\texit{code\_table} \gets \text{build\_code\_table(huffman\_tree)}$
+\State $\textit{encoded\_sequence} \gets \text{encode(sequence, code\_table)}$
+\State $ \textit{return encoded\_sequence}$
+\end{algorithmic}
+\end{algorithm}
+
+\chapter{Implementation}
+This project is implemented as a template design pattern. The main class is the
+the \textbf{huffman\_base} class that defines the outline of the algorithm.
+This base class defines the functions which are executed sequentially, whereas
+the parallel functions are defined as pure virtual functions.
+It also includes boilerplate code for reading and writing files,
+avoiding therefore code duplication.
+For every different version of the algorithm, a new class has been created.
+Thus I crafted the \textbf{huffman\_sequential}, \textbf{huffman\_thread} and
+\textbf{huffman\_ff} classes.
+
+\section*{Base class}
+\subsection*{Frequency counting method}
+The signature of the frequency counting method is the following:
+\begin{verbatim}
+virtual unordered_map<char, int> count_frequency(string) = 0;
+\end{verbatim}
+Computing the frequencies of character in a map is the optimal choice
+both in a sequential and a parallel setting.
+
+\subsection*{Encoding method}
+
+\begin{verbatim}
+encoded_t *huffman_thread::encode_string(string sequence, code_table) = 0;
+\end{verbatim}
+where \textbf{encoded\_t} is a typedef for the following type:
+\begin{verbatim}
+typedef std::vector<std::vector<std::vector<bool>*>*> encoded_t;
+\end{verbatim}
+
+First, the codes produced from the Huffman Tree are stored as a vector of bools to exploit their
+efficient space usage. Then the encoded chunks are represented as a vector of pointers to
+these vector of bools (the codes). This is done to avoid copying the codes when storing them
+in the encoded sequence and ensuring high-speed processing.
+This kind of data structure fits well with the parallel version of the algorithm.
+It also fits well with the sequential version, as it will just produce a single
+large chunk which represents the whole encoded sequence.
+
+\section{Sequential version}
+
+\section{Thread version}
+This version uses threads from the C++ standard library.
+
+\section{FastFlow version}
+
+\chapter{Benchmark}
+
+\chapter{Conclusion}
+
+\end{document}
