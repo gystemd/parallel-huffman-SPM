@@ -8,3 +8,5 @@ figures/*
 measurements/*
 report/*
 !report/main.tex
+HuffmanProject
+binary
