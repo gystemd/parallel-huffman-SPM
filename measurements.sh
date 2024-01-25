@@ -7,7 +7,12 @@ then
     echo "File $file not found!"
     exit 1
 fi
-
+# check if the second argument is equal to y
+if [ "$2" = "y" ]
+then
+    echo "Running with jemalloc\n"
+    LD_PRELOAD=/usr/local/lib/libjemalloc.so
+fi
 rm measurements/seq.csv
 echo "Running sequential\n"
 ./HuffmanProject $file_name binary seq
