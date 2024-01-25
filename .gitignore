@@ -10,3 +10,4 @@ report/*
 !report/main.tex
 HuffmanProject
 binary
+plot-remote.sh

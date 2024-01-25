@@ -11,7 +11,7 @@ fi
 if [ "$2" = "y" ]
 then
     echo "Running with jemalloc\n"
-    LD_PRELOAD=/usr/local/lib/libjemalloc.so
+    export LD_PRELOAD=/usr/local/lib/libjemalloc.so
 fi
 rm measurements/seq.csv
 echo "Running sequential\n"
@@ -21,13 +21,13 @@ rm measurements/threads.csv
 for i in 2 4 8 16 32 64 128
 do
     echo "Running with $i threads\n"
-    ./HuffmanProject $file_name binary t $i
+    LD_PRELOAD=$LD_PRELOAD ./HuffmanProject $file_name binary t $i
 done
 
 rm measurements/ff.csv
 for i in 2 4 8 16 32 64 128
 do
     echo "Running with $i threads\n"
-    ./HuffmanProject $file_name binary ff $i
+    LD_PRELOAD=$LD_PRELOAD ./HuffmanProject $file_name binary ff $i
 done
 
