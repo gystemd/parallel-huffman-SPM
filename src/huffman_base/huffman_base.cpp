@@ -117,8 +117,6 @@ void huffman_base::run() {
                encode_time + write_time;
 
   total_time_nio = frequency_time + tree_time + code_time + encode_time;
-  std::cout << "Total time: " << total_time << std::endl;
-  std::cout << "Total time without I/O: " << total_time_nio << std::endl;
   write_benchmark();
 }
 
