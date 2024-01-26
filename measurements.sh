@@ -5,9 +5,9 @@ then
     exit 1
 fi
 
-rm measurements/seq.csv
-rm measurements/threads.csv
-rm measurements/ff.csv
+# rm measurements/seq.csv
+# rm measurements/threads.csv
+# rm measurements/ff.csv
 
 echo "Running sequential \n"
 ./HuffmanProject $file_name binary seq
@@ -32,7 +32,7 @@ then
     export LD_PRELOAD=/usr/local/lib/libjemalloc.so
 
     echo "Running sequential (jemalloc) \n"
-    ./HuffmanProject $file_name binary seq
+    LD_PRELOAD=$LD_PRELOAD ./HuffmanProject $file_name binary seq
 
     for i in 2 4 8 16 32 64 128
     do
