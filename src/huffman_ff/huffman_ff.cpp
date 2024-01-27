@@ -102,14 +102,23 @@ unordered_map<char, unsigned int> huffman_ff::count_frequency() {
 
 encoded_t* huffman_ff::encode_string() {
   auto results = new encoded_t(num_threads);
-  auto emitter = Emitter((int)num_threads, codes, text);
-  auto collector = Collector(results);
+  // auto emitter = Emitter((int)num_threads, codes, text);
+  // auto collector = Collector(results);
 
   // create FF farm with n_encoders workers
-  ff::ff_Farm<Task> farm(Worker, (long)num_threads);
-  farm.add_emitter(emitter);
-  farm.add_collector(collector);
-  farm.run_and_wait_end();
-
+  // ff::ff_Farm<Task> farm(Worker, (long)num_threads);
+  // farm.add_emitter(emitter);
+  // farm.add_collector(collector);
+  // farm.run_and_wait_end();
+  ParallelFor pf(num_threads);
+  auto Map = [&](const long start, const long stop, const int thid) {
+    auto chunk = new std::vector<std::vector<bool>*>();
+    chunk->reserve(stop - start);
+    for (auto i = start; i < stop; i++) {
+      chunk->push_back(codes[text[i]]);
+    }
+    results->at(thid) = chunk;
+  };
+  pf.parallel_for_idx(0, text.size(), 1, 0, Map, num_threads);
   return results;
 }
