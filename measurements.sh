@@ -45,9 +45,10 @@ then
         echo "Running fastflow version ($i threads) (jemalloc) \n"
         LD_PRELOAD=$LD_PRELOAD ./HuffmanProject $file_name binary ff $i
     done
+
+    mv measurements/seq.csv measurements/seq-jemalloc.csv
+    mv measurements/threads.csv measurements/threads-jemalloc.csv
+    mv measurements/ff.csv measurements/ff-jemalloc.csv
 fi
 
-mv measurements/seq.csv measurements/seq-jemalloc.csv
-mv measurements/threads.csv measurements/threads-jemalloc.csv
-mv measurements/ff.csv measurements/ff-jemalloc.csv
 
