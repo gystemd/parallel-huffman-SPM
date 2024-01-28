@@ -88,7 +88,9 @@ unordered_map<char, unsigned int> huffman_ff::count_frequency() {
   auto res = unordered_map<char, unsigned int>();
   std::unordered_map<char, unsigned int> partial_freqs[num_threads];
   auto Map = [&](const long start, const long stop, const int thid) {
-    for (auto i = start; i < stop; i++) partial_freqs[thid][text[i]]++;
+    std::unordered_map<char, unsigned int> tempsum;
+    for (auto i = start; i < stop; i++) tempsum[text[i]]++;
+    partial_freqs[thid] = tempsum;
   };
   auto pf = ParallelFor(num_threads);
   pf.parallel_for_idx(0, text.size(), 1, 0, Map, num_threads);
