@@ -5,6 +5,8 @@
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 \usepackage{amsmath}
+\usepackage{float}
+\usepackage{subcaption}
 
 \title{Parallel Huffman}
 \author{Giulio Piva}
@@ -24,17 +26,17 @@ and the least frequent symbol is encoded with the longest code.
 The pseudo code for the huffman algorithm is shown in Algorithm 1
 
 \begin{algorithm}
-\caption{Huffman code}
-\begin{algorithmic}[1]
-\Procedure{huffman\_code}{}
-\State $\textit{sequence} \gets \text{read\_input(file)}$
-\State $\textit{frequency\_map} \gets \text{compute\_frequency(sequence)}$
-\State $\textit{huffman\_tree} \gets \text{build\_huffman\_tree(frequency\_map)}$
-% \State $\texit{codes\_table} \gets \text{build\_codes\_table(huffman\_tree)}$
-\State $\textit{encoded\_sequence} \gets \text{encode(sequence, code\_table)}$
-\State $ \textit{return encoded\_sequence}$
-\EndProcedure
-\end{algorithmic}
+    \caption{Huffman code}
+    \begin{algorithmic}[1]
+        \Procedure{huffman\_code}{}
+        \State $\textit{sequence} \gets \text{read\_input(file)}$
+        \State $\textit{frequency\_map} \gets \text{compute\_frequency(sequence)}$
+        \State $\textit{huffman\_tree} \gets \text{build\_huffman\_tree(frequency\_map)}$
+        % \State $\texit{codes\_table} \gets \text{build\_codes\_table(huffman\_tree)}$
+        \State $\textit{encoded\_sequence} \gets \text{encode(sequence, code\_table)}$
+        \State $ \textit{return encoded\_sequence}$
+        \EndProcedure
+    \end{algorithmic}
 \end{algorithm}
 
 The first step of the algorithm is to compute the distribution of the characters in the input sequence,
@@ -42,42 +44,42 @@ which is done by counting the frequency of each character. This function has a c
 where $n$ is the length of the input sequence.
 
 \begin{algorithm}
-\caption{Frequency counting}
-\begin{algorithmic}[1]
-\Procedure{compute\_frequency}{sequence}
-\State $\textit{frequency\_map} \gets \text{empty map}$
-\For{$\text{char} \gets \text{sequence}$}
-\State $\textit{frequency\_map[char]++}$
-\EndFor
-\State $ \textit{return frequency\_map}$
-\EndProcedure
-\end{algorithmic}
+    \caption{Frequency counting}
+    \begin{algorithmic}[1]
+        \Procedure{compute\_frequency}{sequence}
+        \State $\textit{frequency\_map} \gets \text{empty map}$
+        \For{$\text{char} \gets \text{sequence}$}
+        \State $\textit{frequency\_map[char]++}$
+        \EndFor
+        \State $ \textit{return frequency\_map}$
+        \EndProcedure
+    \end{algorithmic}
 \end{algorithm}
 After computing the distribution of the characters in input sequence,
 the subsequent step is to build the Huffman tree.
 This process is supported by a priority queue to provide
 efficient access to the nodes with the lowest frequency.
 \begin{algorithm}
-\caption{Huffman tree generation}
-\begin{algorithmic}[1]
-\Procedure{build\_huffman\_tree}{frequency\_map}
-\State queue $\gets$ empty priority queue
-\For{$\text{char} \gets \text{frequency\_map}$}
-\State $\textit{node} \gets \text{node(char, frequency\_map[char], nil, nil)}$
-\State $\text{queue.push(node)}$
-\EndFor
+    \caption{Huffman tree generation}
+    \begin{algorithmic}[1]
+        \Procedure{build\_huffman\_tree}{frequency\_map}
+        \State queue $\gets$ empty priority queue
+        \For{$\text{char} \gets \text{frequency\_map}$}
+        \State $\textit{node} \gets \text{node(char, frequency\_map[char], nil, nil)}$
+        \State $\text{queue.push(node)}$
+        \EndFor
 
-\While{$\text{queue.size()} > 1$}
-\State $\textit{l} \gets \text{queue.pop()}$
-\State $\textit{r} \gets \text{queue.pop()}$
-\State $\textit{node} \gets node(nil, l.freq + r.freq, l, r)$
-\State $\text{queue.push(node)}$
-\EndWhile
+        \While{$\text{queue.size()} > 1$}
+        \State $\textit{l} \gets \text{queue.pop()}$
+        \State $\textit{r} \gets \text{queue.pop()}$
+        \State $\textit{node} \gets node(nil, l.freq + r.freq, l, r)$
+        \State $\text{queue.push(node)}$
+        \EndWhile
 
-\State $ \textit{return queue.pop()}$
+        \State $ \textit{return queue.pop()}$
 
-\EndProcedure
-\end{algorithmic}
+        \EndProcedure
+    \end{algorithmic}
 \end{algorithm}
 The time complexity of this algorithm is $O(m \log m)$,
 where $m$ is the number of distinct characters in the input sequence.
@@ -87,46 +89,46 @@ Then, the Huffman tree is traversed to generate the codes for each character
 and save them in a map in order to avoid trasversing the tree for
 every character in the input sequence.
 \begin{algorithm}
-\caption{Codes table generation}
-\begin{algorithmic}[1]
-\Procedure{build\_codes\_table}{root}
-\State $\textit{codes\_table} \gets \text{empty map}$
-\State $\textit{queue} \gets \text{empty queue}$
-\State $\text{queue.push(root)}$
-\While{$\text{queue.size()} > 0$}
-\State $\textit{node} \gets \text{queue.pop()}$
-\If{$\text{node.left} \neq \text{nil}$}
-\State $\text{node.left.code} \gets \text{node.code + 0}$
-\State $\text{queue.push(node.left)}$
-\EndIf
-\If{$\text{node.right} \neq \text{nil}$}
-\State $\text{node.right.code} \gets \text{node.code + 1}$
-\State $\text{queue.push(node.right)}$
-\EndIf
-\If{$\text{node.char} \neq \text{nil}$}
-\State $\textit{codes\_table[node.char]} \gets \text{node.code}$
-\EndIf
-\EndWhile
-\State $ \textit{return codes\_table}$
-\EndProcedure
-\end{algorithmic}
+    \caption{Codes table generation}
+    \begin{algorithmic}[1]
+        \Procedure{build\_codes\_table}{root}
+        \State $\textit{codes\_table} \gets \text{empty map}$
+        \State $\textit{queue} \gets \text{empty queue}$
+        \State $\text{queue.push(root)}$
+        \While{$\text{queue.size()} > 0$}
+        \State $\textit{node} \gets \text{queue.pop()}$
+        \If{$\text{node.left} \neq \text{nil}$}
+        \State $\text{node.left.code} \gets \text{node.code + 0}$
+        \State $\text{queue.push(node.left)}$
+        \EndIf
+        \If{$\text{node.right} \neq \text{nil}$}
+        \State $\text{node.right.code} \gets \text{node.code + 1}$
+        \State $\text{queue.push(node.right)}$
+        \EndIf
+        \If{$\text{node.char} \neq \text{nil}$}
+        \State $\textit{codes\_table[node.char]} \gets \text{node.code}$
+        \EndIf
+        \EndWhile
+        \State $ \textit{return codes\_table}$
+        \EndProcedure
+    \end{algorithmic}
 \end{algorithm}
 
 Finally, the input sequence is scanned again and for each character the corresponding
 code is appended to the encoded sequence.
 
 \begin{algorithm}
-\caption{Encoding}
-\begin{algorithmic}[1]
-\Procedure{encode}{sequence, code\_table}
+    \caption{Encoding}
+    \begin{algorithmic}[1]
+        \Procedure{encode}{sequence, code\_table}
 
-\State $\textit{encoded\_sequence} \gets \text{empty vector of bools}$
-\For{$\text{char} \gets \text{sequence}$}
-\State $\textit{encoded\_sequence.append(code\_table[char])}$
-\EndFor
-\State $ \textit{return encoded\_sequence}$
-\EndProcedure
-\end{algorithmic}
+        \State $\textit{encoded\_sequence} \gets \text{empty vector of bools}$
+        \For{$\text{char} \gets \text{sequence}$}
+        \State $\textit{encoded\_sequence.append(code\_table[char])}$
+        \EndFor
+        \State $ \textit{return encoded\_sequence}$
+        \EndProcedure
+    \end{algorithmic}
 \end{algorithm}
 
 \chapter{Implementation}
@@ -140,16 +142,6 @@ For every different version of the algorithm, a new class has been created.
 Thus I crafted the \textbf{huffman\_sequential}, \textbf{huffman\_thread} and
 \textbf{huffman\_ff} classes.
 
-\section*{Base class}
-\subsection*{Frequency counting method}
-The signature of the frequency counting method is the following:
-\begin{verbatim}
-virtual unordered_map<char, int> count_frequency(string) = 0;
-\end{verbatim}
-Computing the frequencies of character in a map is the optimal choice
-both in a sequential and a parallel setting.
-
-\subsection*{Encoding method}
 
 \begin{verbatim}
 encoded_t *huffman_thread::encode_string(string sequence, code_table) = 0;
@@ -159,22 +151,120 @@ where \textbf{encoded\_t} is a typedef for the following type:
 typedef std::vector<std::vector<std::vector<bool>*>*> encoded_t;
 \end{verbatim}
 
-First, the codes produced from the Huffman Tree are stored as a vector of bools to exploit their
-efficient space usage. Then the encoded chunks are represented as a vector of pointers to
-these vector of bools (the codes). This is done to avoid copying the codes when storing them
-in the encoded sequence and ensuring high-speed processing.
-This kind of data structure fits well with the parallel version of the algorithm.
-It also fits well with the sequential version, as it will just produce a single
-large chunk which represents the whole encoded sequence.
+\section{Data structures}
+\subsection{Table codes}
+The codes of the characters are stored in a map of type
+\begin{verbatim}
+    std::unordered map<char, std::vector<bool>*>
+\end{verbatim}
+This is done to avoid traversing the Huffman tree for every character in the input sequence.
+Using a vector of bools is space efficient, since it uses a single bit for each element
+as opposed to a char which uses 8 bits for each one.
+The purpose of the pointers is to avoid unnecessary
+data copying or movement during the encoding phase.
+\subsection{Encoded sequence}
+For storing the encoded sequence I used a datastructure
+with the following type
+\begin{verbatim}
+vector<vector<vector<bool>*>*>
+\end{verbatim}
+the inner vector represents a
+pointer to the Huffman code for a specific character. The middle vector
+represents a part of the input sequence encoded by a certain worker.
+Finally, the outer vector holds a collection of these chunks which represent
+the whole encoded sequence.
+The main purpose of this data structure is to avoid the reduce phase.
+During the write phase, all the produced codes must be traversed one by one regardless
+of them being concatenated in a single vector or split into chunks.
+The sequential version doesn't not require particular adapations as it
+will produce a vector composed of a single chunk (the whole sequence encoded).
+
 
 \section{Sequential version}
 
 \section{Thread version}
-This version uses threads from the C++ standard library.
+\subsection{Frequency counting}
+To parallelize the frequency counting, I adopted a standard
+map-reduce pattern. Every thread is assigned statically a portion of
+the input sequence to compute a partial frequency map.
+When all the threads have finished their task and are joined together,
+the produced partial frequency maps are merged together to obtain the final
+frequency map. The commutative and associative
+prop
+The reduce phase is not parallelized.
+In our particular case, since we are dealing with at most 256 characters(ASCII),
+this phase would involve summing at most 256 integers from
+each mapper, which is a lightweight operation, negligibly impacting the program's
+sequential fraction.
+\subsection{Encoding phase}
+As a result of the chosen datastructure
+previously describer, this phase is based on a standard map pattern.
+The input sequence is statically split into chunks and
+independently processed by each thread to produce the chunks. Every
+thread encodes a subsequence.
+
 
 \section{FastFlow version}
 
 \chapter{Benchmark}
+In this section will present the results of the tests performed.
+The tests were run on a dual-socket
+NUMA AMD EPYC 7301 machine, 16 cores/32 threads each, for a total of 64hw
+threads.
+Every version of the huffman algorithm was tested with the \textbf{jemalloc} library.
+The application is compiled with the -O3 flag.
+\section{50kb file}
+Theoretically, the speedup on such a light file should be very low.
+The obtained results in fact confirm this hypothesis: The overhead derived
+from the setup of the parallelization overcomes the sequential execution time.
+With the thread version, we can observe that only up to 2 threads a small speedup is achieved ($\approx 1.2$).
+Then, the execution time increases as the number of threads increases.
+With the FastFlow there is not even a speedup. The introduced overheads of setting
+up the communication channels and moving data around completely overwhelms the sequential version.
+\begin{figure}[H]
+    \begin{subfigure}{0.5\textwidth}
+        \centering
+        \includegraphics[width=1\textwidth]{figures/64k/speedup.png}
+        \caption{speedup with 50kb file}
+    \end{subfigure}
+    \begin{subfigure}{0.5\textwidth}
+        \centering
+        \includegraphics[width=1\textwidth]{figures/64k/efficiency.png}
+        \caption{efficiency with 50kb file}
+    \end{subfigure}
+    \begin{subfigure}{0.5\textwidth}
+        \centering
+        \includegraphics[width=1\textwidth]{figures/64k/total-time.png}
+        \caption{execution time with 50kb file}
+    \end{subfigure}
+\end{figure}
+
+\section{50MB file}
+With a reasonable large file size, the benefits provided by the parallelization emerge.
+The threads version reaches a peak speedup of $\approx 16$ with 64 threads,
+whereas the FastFlow version obtains a speedup of $\approx 12$ with 32 threads.
+This smaller speedup is likely caused by FastFlow communication channels having to deal with finer and
+finer computations as the number of worker increases.
+Moreover, we can observe that the jemalloc library doesn't provide concrete benefits
+and starting from a certain number of threads it even worsen the performance.
+\begin{figure}[H]
+    \begin{subfigure}{0.5\textwidth}
+        \centering
+        \includegraphics[width=1\textwidth]{figures/64M/speedup.png}
+        \caption{speedup with 50mb file}
+    \end{subfigure}
+    \begin{subfigure}{0.5\textwidth}
+        \centering
+        \includegraphics[width=1\textwidth]{figures/64M/efficiency.png}
+        \caption{efficiency with 50mb file}
+    \end{subfigure}
+    \begin{subfigure}{0.5\textwidth}
+        \centering
+        \includegraphics[width=1\textwidth]{figures/64M/total-time.png}
+        \caption{execution time with 50mb file}
+    \end{subfigure}
+\end{figure}
+
 
 \chapter{Conclusion}
 
