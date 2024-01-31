@@ -12,19 +12,19 @@
 #include "bitset"
 #include "unordered_map"
 
-std::string huffman_base::read_file() {
-    std::ifstream in(input_file);
-    std::string seq;
+std::string huffman_base::read_file(std::string input_file) {
+  std::ifstream in(input_file);
+  std::string seq;
 
-    if (!in.is_open())
-        throw std::runtime_error("Could not open file: " + input_file);
-    getline(in, seq);
-    in.close();
-    return seq;
+  if (!in.is_open())
+    throw std::runtime_error("Could not open file: " + input_file);
+  getline(in, seq);
+  in.close();
+  return seq;
 }
 
-huffman_base::huffman_node *huffman_base::build_tree() {
-
+huffman_base::huffman_node *huffman_base::build_tree(
+    std::unordered_map<char, unsigned int> freq) {
   struct Compare {
     bool operator()(huffman_node *left, huffman_node *right) {
       return left->frequency > right->frequency;
@@ -52,7 +52,8 @@ huffman_base::huffman_node *huffman_base::build_tree() {
   return pq.top();
 }
 
-std::unordered_map<char, std::vector<bool> *> huffman_base::build_codes() {
+std::unordered_map<char, std::vector<bool> *> huffman_base::build_codes(
+    huffman_base::huffman_node *root) {
   std::unordered_map<char, std::vector<bool> *> codes;
   std::function<void(huffman_node *, std::vector<bool> *)> build_codes =
       [&](huffman_node *node, std::vector<bool> *code) {
@@ -75,43 +76,33 @@ std::unordered_map<char, std::vector<bool> *> huffman_base::build_codes() {
 void huffman_base::run() {
   {
     utimer timer("read", &read_time);
-    this->text = read_file();
+    this->text = read_file(this->input_file);
   }
 
   {
     utimer timer("count frequency", &frequency_time);
-    this->freq = count_frequency();
+    this->freq = count_frequency(this->text);
   }
 
   {
     utimer timer("build tree", &tree_time);
-    this->root = build_tree();
+    this->root = build_tree(this->freq);
   }
 
   {
     utimer timer("build codes", &code_time);
-    this->codes = build_codes();
+    this->codes = build_codes(this->root);
   }
 
   {
     utimer timer("encode", &encode_time);
-    this->encoded = encode_string();
+    this->encoded = encode_string(this->codes, this->text);
   }
-
-
-  // std::string decoded = decode();
-  // if (decoded == text) {
-  //   std::cout << "Decoded text is  the same as the original text." <<
-  //   std::endl;
-  // } else {
-  //   return;
-  // }
 
   {
     utimer timer("write", &write_time);
-    write_file();
+    write_file(*(this->encoded), this->output_file);
   }
-
 
   total_time = read_time + frequency_time + tree_time + code_time +
                encode_time + write_time;
@@ -120,46 +111,93 @@ void huffman_base::run() {
   write_benchmark();
 }
 
-void huffman_base::write_file() {
-  std::ofstream file(output_file, std::ios::out | std::ios::binary);
-  if (!file) {
-    std::cerr << "Cannot open the output file." << std::endl;
-    return;
-  }
+void huffman_base::write_file(encoded_t &encoded, std::string output_file) {
+    std::ofstream out(output_file, std::ios::binary);
+    if (!out.is_open())
+        throw std::runtime_error("Could not open file: " + output_file);
 
-  for (size_t i = 0; i < encoded->size(); i += 8) {
-    for (size_t j = 0; j < encoded->at(i)->size(); j++) {
-      std::vector<bool> bits = *encoded->at(i)->at(j);
-      std::bitset<8> bitset;
-      for (size_t k = 0; k < 8; k++) bitset[k] = bits[k];
-      unsigned char byte = bitset.to_ulong();
-      file.write(reinterpret_cast<const char *>(&byte), sizeof(byte));
+    std::vector<unsigned char> bytes;
+    int bitsWritten = 0;
+    int totalWritten = 0;
+    unsigned char byte = 0;
+
+    for (const auto &chunk : encoded)
+    {
+        for (const auto &vec : *chunk)
+        {
+            for (auto bit : *vec)
+            {
+                byte |= (bit << bitsWritten);
+                bitsWritten++;
+                totalWritten++;
+                if (bitsWritten == 8)
+                {
+                    bytes.push_back(byte);
+                    byte = 0;
+                    bitsWritten = 0;
+                }
+            }
+        }
     }
-  }
 
-  file.close();
+    // Handle padding
+    if (bitsWritten > 0)
+        bytes.push_back(byte);
+    unsigned char header = 8 - (totalWritten % 8);
+    if (header == 8)
+        header = 0;
+
+    // writing a header which contains the number of bits to discard from the last byte.
+    out << char(header);
+    out.write(reinterpret_cast<const char *>(bytes.data()), (long)bytes.size());
+    out.close();
 }
 
-std::string huffman_base::decode() {
-  std::string decoded = "";
-  huffman_node *node = root;
-  for (size_t i = 0; i < encoded->size(); i++) {
-    for (size_t j = 0; j < encoded->at(i)->size(); j++) {
-      std::vector<bool> *bits = encoded->at(i)->at(j);
-      for (size_t k = 0; k < bits->size(); k++) {
-        if (bits->at(k)) {
-          node = node->right;
-        } else {
-          node = node->left;
-        }
-        if (node->left == nullptr && node->right == nullptr) {
-          decoded += node->data;
-          node = root;
-        }
-      }
+
+std::string huffman_base::decode_file(std::string input_file,const huffman_node *root) {
+    std::ifstream in(input_file, std::ios::binary);
+    auto encoded = new std::vector<bool>();
+
+    if (!in.is_open())
+        throw std::runtime_error("Could not open file: " + input_file);
+
+    // first byte is the header, which contains the number of bits to discard from the last byte.
+    char header;
+    in.get(header);
+
+    char c;
+    while (in.get(c))
+    {
+        std::bitset<8> bits(c);
+        for (int i = 0; i < 8; i++)
+            encoded->push_back(bits[i]);
     }
-  }
-  return decoded;
+
+    // discard the last n bits, where n is the header.
+    encoded->erase(encoded->end() - int(header), encoded->end());
+    in.close();
+    return decode(*encoded, root) ;
+}
+
+std::string huffman_base::decode(const std::vector<bool> &encoded, const huffman_base::huffman_node *root)
+{
+    std::string decoded = "";
+    auto node = root;
+    for (auto b : encoded)
+    {
+        if (b)
+            node = node->right;
+        else
+            node = node->left;
+
+        if (node->data != '\0')
+        {
+            // append the character to the decoded string and reset the node to the root.
+            decoded.push_back(node->data);
+            node = root;
+        }
+    }
+    return decoded;
 }
 
 void huffman_base::write_benchmark() {
@@ -168,30 +206,32 @@ void huffman_base::write_benchmark() {
     std::cerr << "Cannot open the benchmark file." << std::endl;
     return;
   }
-  // file << num_threads << "," << read_time << "," << frequency_time << "," << tree_time << ","
+  // file << num_threads << "," << read_time << "," << frequency_time << "," <<
+  // tree_time << ","
   //      << code_time << "," << encode_time << "," << write_time << std::endl;
-  file << num_threads << "," << total_time << "," << total_time_nio << std::endl;
+  file << num_threads << "," << total_time << "," << total_time_nio
+       << std::endl;
   file.close();
 }
 
-std::string huffman_base::read_encoded_file() {
-  std::ifstream in(input_file, std::ios::in | std::ios::binary);
-  std::string seq;
+huffman_base::~huffman_base() {
+  // delete the tree
+  std::function<void(huffman_node *)> delete_tree = [&](huffman_node *node) {
+    if (!node) return;
+    delete_tree(node->left);
+    delete_tree(node->right);
+    delete node;
+  };
+  delete_tree(root);
 
-  if (!in.is_open())
-    throw std::runtime_error("Could not open file: " + input_file);
+  // delete the codes
+  for (auto &entry : codes) delete entry.second;
 
-  char byte;
-  while (in.read(&byte, sizeof(byte))) {
-    std::bitset<8> bitset(byte);
-    for (int i = 7; i >= 0; i--) {
-      if (bitset[i])
-        seq += '1';
-      else
-        seq += '0';
-    }
+  // delete the encoding
+  for (auto &v : *encoded) {
+    for (auto &code : *v) delete code;
+    delete v;
   }
+  delete encoded;
 
-  in.close();
-  return seq;
 }

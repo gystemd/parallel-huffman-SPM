@@ -3,7 +3,8 @@
 #include <thread>
 #include <unordered_map>
 
-std::unordered_map<char, unsigned int> huffman_thread::count_frequency() {
+std::unordered_map<char, unsigned int> huffman_thread::count_frequency(
+    std::string text) {
   std::unordered_map<char, unsigned int> partial_freqs[num_threads];
   std::unordered_map<char, unsigned int> result;
   std::vector<std::thread> thread_mappers(num_threads);
@@ -28,7 +29,8 @@ std::unordered_map<char, unsigned int> huffman_thread::count_frequency() {
   return result;
 }
 
-encoded_t *huffman_thread::encode_string() {
+encoded_t *huffman_thread::encode_string(
+    std::unordered_map<char, std::vector<bool> *> codes, std::string text) {
   std::vector<std::thread> threads(num_threads);
   auto size = text.length();
   auto results = new encoded_t(num_threads);

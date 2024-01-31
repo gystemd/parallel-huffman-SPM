@@ -3,7 +3,8 @@
 #include <unordered_map>
 // #include "utimer.cpp"
 
-std::unordered_map<char, unsigned int> huffman_seq::count_frequency() {
+std::unordered_map<char, unsigned int> huffman_seq::count_frequency(
+    std::string text) {
   std::unordered_map<char, unsigned int> freq;
   for (char c : text) {
     freq[c]++;
@@ -11,7 +12,8 @@ std::unordered_map<char, unsigned int> huffman_seq::count_frequency() {
   return freq;
 }
 
-encoded_t* huffman_seq::encode_string() {
+encoded_t* huffman_seq::encode_string(
+    std::unordered_map<char, std::vector<bool>*> codes, std::string text) {
   encoded_t* encoded = new encoded_t();
   std::vector<std::vector<bool>*>* encoded_chunk =
       new std::vector<std::vector<bool>*>();

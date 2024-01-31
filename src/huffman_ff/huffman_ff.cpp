@@ -10,7 +10,7 @@
 using namespace std;
 using namespace ff;
 
-unordered_map<char, unsigned int> huffman_ff::count_frequency() {
+unordered_map<char, unsigned int> huffman_ff::count_frequency(string text) {
   auto res = unordered_map<char, unsigned int>();
   auto map_f = [&](const long i, unordered_map<char, unsigned>& tempsum) {
     tempsum[text[i]]++;
@@ -26,17 +26,19 @@ unordered_map<char, unsigned int> huffman_ff::count_frequency() {
   return res;
 }
 
-encoded_t* huffman_ff::encode_string() {
+encoded_t* huffman_ff::encode_string(unordered_map<char, vector<bool>*> codes,
+                                     string text) {
   auto results = new encoded_t(num_threads);
   ParallelFor pf(num_threads);
+
   auto Map = [&](const long start, const long stop, const int thid) {
     auto chunk = new std::vector<std::vector<bool>*>();
     chunk->reserve(stop - start);
-    for (auto i = start; i < stop; i++) {
-      chunk->push_back(codes[text[i]]);
-    }
+
+    for (auto i = start; i < stop; i++) chunk->push_back(codes[text[i]]);
     results->at(thid) = chunk;
   };
+
   pf.parallel_for_idx(0, text.size(), 1, 0, Map, num_threads);
   return results;
 }
