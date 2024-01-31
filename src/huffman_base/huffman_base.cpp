@@ -24,7 +24,7 @@ std::string huffman_base::read_file(std::string input_file) {
 }
 
 huffman_base::huffman_node *huffman_base::build_tree(
-    std::unordered_map<char, unsigned int> freq) {
+    std::unordered_map<char, unsigned int>& freq) {
   struct Compare {
     bool operator()(huffman_node *left, huffman_node *right) {
       return left->frequency > right->frequency;

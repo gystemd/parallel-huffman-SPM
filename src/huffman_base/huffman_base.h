@@ -37,11 +37,11 @@ class huffman_base {
 
   std::string read_file(std::string input_file);
   virtual std::unordered_map<char, unsigned int> count_frequency(
-      std::string text) = 0;
-  huffman_node* build_tree(std::unordered_map<char, unsigned int> freq);
+      std::string &text) = 0;
+  huffman_node* build_tree(std::unordered_map<char, unsigned int>& freq);
   std::unordered_map<char, std::vector<bool>*> build_codes(huffman_node* root);
   virtual encoded_t* encode_string(
-      std::unordered_map<char, std::vector<bool>*> codes, std::string text) = 0;
+      std::unordered_map<char, std::vector<bool>*>& codes, std::string &text) = 0;
   void write_file(encoded_t &encoded, std::string output_file);
   std::string decode(const std::vector<bool> &encoded, const huffman_base::huffman_node *root);
 
