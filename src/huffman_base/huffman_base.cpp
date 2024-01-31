@@ -101,7 +101,7 @@ void huffman_base::run() {
 
   {
     utimer timer("write", &write_time);
-    write_file(*(this->encoded), this->output_file);
+    // write_file(*(this->encoded), this->output_file);
   }
 
   total_time = read_time + frequency_time + tree_time + code_time +
