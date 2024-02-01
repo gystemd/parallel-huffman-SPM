@@ -17,13 +17,13 @@ unordered_map<char, unsigned int> huffman_ff::count_frequency(string& text) {
   };
 
   auto reduce = [&](unordered_map<char, unsigned>& a,
-                   const unordered_map<char, unsigned>& b) {
+                    const unordered_map<char, unsigned>& b) {
     for (auto& it : b) a[it.first] += it.second;
   };
 
   auto pf = ParallelForReduce<unordered_map<char, unsigned>>((long)num_threads);
-  pf.parallel_reduce(frequency, unordered_map<char, unsigned>(), 0, (long)text.size(),
-                     1, map, reduce, num_threads);
+  pf.parallel_reduce(frequency, unordered_map<char, unsigned>(), 0,
+                     (long)text.size(), 1, map, reduce, num_threads);
   return frequency;
 }
 

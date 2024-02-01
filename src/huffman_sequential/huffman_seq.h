@@ -6,7 +6,8 @@ class huffman_seq : public huffman_base {
       std::string& text) override;
   virtual encoded_t* encode_string(
       std::unordered_map<char, std::vector<bool>*>& codes,
-      std::string &text) override;
+      std::string& text) override;
+
   huffman_seq(std::string input_file, std::string output_file)
       : huffman_base(input_file, output_file) {
     benchmark_file = "measurements/seq.csv";

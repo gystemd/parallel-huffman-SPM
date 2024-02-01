@@ -7,6 +7,7 @@ class huffman_thread : public huffman_base {
   virtual encoded_t *encode_string(
       std::unordered_map<char, std::vector<bool> *> &codes,
       std::string &text) override;
+
   huffman_thread(std::string input_file, std::string output_file,
                  int par_degree)
       : huffman_base(input_file, output_file) {
