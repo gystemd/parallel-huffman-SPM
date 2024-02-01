@@ -283,9 +283,6 @@ huffman_base::~huffman_base() {
   for (auto &entry : codes) delete entry.second;
 
   // delete the encoding
-  for (auto &v : *encoded) {
-    for (auto &code : *v) delete code;
-    delete v;
-  }
+  for (auto &v : *encoded) delete v;
   delete encoded;
 }
