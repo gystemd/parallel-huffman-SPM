@@ -3,12 +3,18 @@
 #include <thread>
 #include <unordered_map>
 
+/**
+ * Counts the frequency of each character in a string using multithreading.
+ * @param text The string to count the character frequencies in.
+ * @return A map where each key-value pair represents a character and its frequency.
+ */
 std::unordered_map<char, unsigned int> huffman_thread::count_frequency(
     std::string &text) {
   std::unordered_map<char, unsigned int> partial_freqs[num_threads];
   std::unordered_map<char, unsigned int> result;
   std::vector<std::thread> threads(num_threads);
 
+  // The map function counts the frequency of each character in a chunk of the string.
   auto map = [&](size_t tid) {
     auto start = tid * (text.length() / num_threads);
     auto end = (tid + 1) * (text.length() / num_threads);
@@ -17,10 +23,13 @@ std::unordered_map<char, unsigned int> huffman_thread::count_frequency(
     for (size_t i = start; i < end; i++) partial_freqs[tid][text[i]]++;
   };
 
+  // Create and start the threads.
   for (size_t i = 0; i < num_threads; i++) threads[i] = std::thread(map, i);
 
+  // Wait for all threads to finish.
   for (auto &t : threads) t.join();
 
+  // Merge the partial frequency maps into the result map.
   for (auto &partial_freq : partial_freqs)
     for (auto &it : partial_freq) result[it.first] += it.second;
 
