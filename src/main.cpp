@@ -40,4 +40,6 @@ int main(int argc, char *argv[]) {
     std::cout << "Decoded unsuccessfully." << std::endl;
   return 0;
 #endif
+  delete huffman;
+  return 0;
 }

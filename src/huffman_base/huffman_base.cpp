@@ -106,7 +106,6 @@ void huffman_base::run() {
 
   total_time = read_time + frequency_time + tree_time + code_time +
                encode_time + write_time;
-
   total_time_nio = frequency_time + tree_time + code_time + encode_time;
   write_benchmark();
 }
@@ -192,7 +191,6 @@ std::string huffman_base::decode(const std::vector<bool> &encoded, const huffman
 
         if (node->data != '\0')
         {
-            // append the character to the decoded string and reset the node to the root.
             decoded.push_back(node->data);
             node = root;
         }

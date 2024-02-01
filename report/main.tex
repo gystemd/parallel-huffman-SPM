@@ -24,20 +24,20 @@ and the least frequent symbol is encoded with the longest code.
 The Huffman Algorithm can be divided into four macro steps:
 \begin{enumerate}
     \item Frequency counting: The first operation to be performed is generating the frequency map of the characters in the input sequence.
-    The time complexity of this operation is $O(n)$, where $n$ is the length of the input sequence.
+          The time complexity of this operation is $O(n)$, where $n$ is the length of the input sequence.
     \item Huffman Tree generation: the tree is built by iteratively picking the two nodes with the lowest frequency and connect them to a parent node.
-    In this way, the characters with higher frequency are matched with a node closer to the root of the tree and consequently
-    in the encoding it will result in shorter code. The most appropriate data structure to
-    support this step is a priority queue, which allows to retrieve the nodes with the lowest frequency in $O(1)$ time and to insert a new node in $O(log(m))$ time.
-    Therefore, the time complexity of this step is $O(mlog(m))$, where $m$ is the number of different characters in the input sequence. Since
-    we are dealing with ASCII characters, $m$ is at most 256 and therefore the time complexity is constant.
+          In this way, the characters with higher frequency are matched with a node closer to the root of the tree and consequently
+          in the encoding it will result in shorter code. The most appropriate data structure to
+          support this step is a priority queue, which allows to retrieve the nodes with the lowest frequency in $O(1)$ time and to insert a new node in $O(log(m))$ time.
+          Therefore, the time complexity of this step is $O(mlog(m))$, where $m$ is the number of different characters in the input sequence. Since
+          we are dealing with ASCII characters, $m$ is at most 256 and therefore the time complexity is constant.
     \item Code generation: This phase saves the huffman codes produced by the previous step in a hashmap. This
-    is done to avoid traversing the Huffman tree for every character in the input sequence and providing fast access to the codes.
-    The time complexity of this step is $O(m)$.
+          is done to avoid traversing the Huffman tree for every character in the input sequence and providing fast access to the codes.
+          The time complexity of this step is $O(m)$.
     \item Encoding: The last step is the actual encoding of the input sequence. This is done by traversing the input sequence and
-    for every character, appending the corresponding code to the output sequence. Again The time complexity of this step is $O(n)$.
+          for every character, appending the corresponding code to the output sequence. Again The time complexity of this step is $O(n)$.
 \end{enumerate}
-To these operation, we have to add two more steps, needed for reading and writing the file out to memory.
+We must also consider the time of the the operations for reading and writing the file.
 As we can see already from the time complexities, the most expensive operations are the frequency counting and encoding steps.
 For large input sequences, we can expect them to become primary sources of bottlenecks, together with the I/O operations.
 In the following sections, I will describe the parallelization strategies adopted to overcome these bottlenecks.
@@ -49,101 +49,109 @@ It also incorporates boilerplate code for file reading and writing, thereby elim
 For each variant of the algorithm, a distinct class has been created: \textbf{huffman\_sequential}, \textbf{huffman\_thread}, and \textbf{huffman\_ff}.
 This design pattern aligns naturally with the project's requirements, as the same algorithm needs to be implemented in different ways.
 Furthermore, it provides a straightforward method for implementing new (parallel) versions of the algorithm.
-The virtual methods, that is the function to be implemented for each algorith version are:
+The functions to be specialized are:
 \begin{itemize}
-\item \begin{verbatim}
-encoded_t* encode_string(string sequence, code_table) = 0;
+    \item \begin{verbatim}
+virtual encoded_t* encode_string(
+      std::unordered_map<char, std::vector<bool>*>& codes,
+      std::string &text) = 0;
 \end{verbatim}
-
+    \item \begin{verbatim}
+virtual std::unordered_map<char, unsigned int> count_frequency(
+      std::string &text) = 0;
+    \end{verbatim}
 \end{itemize}
 
 \subsection{Data structures}
 \subsubsection{Table codes}
 The codes of the characters are stored in a hashmap of type
 \begin{verbatim}
-typedef std::vector<std::vector<std::vector<bool>*>*> encoded_t;
+std::unordered_map<char, std::vector<bool>*>
 \end{verbatim}
 The choice of a vector of bools to represent the codes is dictated by its space efficiency, since it uses a single bit for each element
 as opposed to a char which uses 8 bits for each one.
 The purpose of the pointers instead is to avoid unnecessary data copying or movement during the encoding phase.
 \subsubsection{Encoded sequence}
 For storing the encoded sequence I used a data structure with the following type
+
 \begin{verbatim}
-vector<vector<vector<bool>*>*>
+typedef std::vector<std::vector<std::vector<bool>*>*> encoded_t;
 \end{verbatim}
+
 The inner vector represents a
-pointer to the Huffman code for a specific character. The middle vector
+pointer to the encoding of a character. The middle vector
 represents a part of the input sequence encoded by a single worker.
 Finally, the outer vector holds a collection of these chunks which represent
 the whole encoded sequence.
-The main purpose of this data structure is to avoid the reduce phase.
+One advantage of this data structure is to avoid the reduce phase.
 During the write phase, all the produced codes must be traversed one by one, regardless
 of them being concatenated in a single vector or split into chunks. In such a manner we
 avoid the non-negligible overhead of concatenating the subsequences.
 The sequential version implementation doesn't not require particular adaptions as it
 will produce a vector composed of a single chunk (the whole sequence encoded).
+This datastructure provides also advantages in terms of memory access.
+In a NUMA system (the reference architecture for this project), each processor (or core) has its own local memory,
+and accessing this local memory is faster than accessing memory that is local to another processor.
+Having a small vector also enhances the chances of the data being stored in the cache.
 
 \subsection{Thread version}
-\subsection{Frequency counting}
+\subsubsection{Frequency counting}
 To parallelize the frequency counting, I adopted a standard
 map-reduce pattern. Every thread is assigned statically a portion of
 the input sequence to compute a partial frequency map.
 When all the threads have finished their task and are joined together,
 the produced partial frequency maps are merged together to obtain the final
-frequency map. The reduce phase is not parallelized.
-In our specific case, since we are dealing with at most 256 characters(ASCII),
-this phase would involve summing at most 256 integers from
-each mapper, which is a lightweight operation, negligibly impacting the program's
-sequential fraction.
+frequency map. The reduce phase is not parallelized:
+In our particular scenario, given that we are working with a maximum of 256 characters (ASCII),
+this phase entails the summation of up to 256 integers from each mapper.
+This operation is relatively lightweight and the benefits of parallelization are negligible
+or even detrimental.
 \subsubsection{Encoding phase}
-As a result of the chosen datastructure
-previously described, this phase is based on a standard map pattern.
-The input sequence is statically split into chunks and
-independently processed by each thread to produce the chunks. Every
-thread encodes a subsequence.
-Each worker determines its index and proceeds
-to compute the encoding for every character within its segment of the sequence.
-This is achieved by adding the corresponding character's pointer to the designated
-chunk. Subsequently, the worker returns this encoding to the calling thread.
+Building upon the previously described data structure, this phase employs a standard map pattern.
+The input sequence is statically divided into chunks, with each thread independently processing a
+chunk to produce encoded subsequences.
+Each worker identifies its index and calculates the encoding for every character within
+its assigned segment of the sequence. This is accomplished by appending the corresponding
+character's pointer to the appropriate chunk. Once this process is complete, the worker returns
+the encoded sequence to the invoking thread.
 
 
 \subsection{FastFlow version}
-The FastFlow implementation is similar to the previous one, and
-implements the same patterns described before in an high level fashion.
+The FastFlow implementation is similar to the previous one and
+implements the same patterns described before, in an high level manner.
 \subsubsection{Frequency counting}
-FastFlow provides naively high level data parallel patterns. In particular, it was easy
+FastFlow provides naively high level data parallel patterns. It was simple
 to implement the parallel-reduce function taking advantage of the ff::ParallelForReduce
-class. In particular, two main lambda functions were specified, one for the mapper,
-another for the reducer. The mapper lambda takes care of increasing the count
-for the examined character, and the mapper function manages to merge the result.
-After calling the pf.parallel reduce() method, the usual map is returned to the
-main thread, then the tree is built and the codes are generated.
+class and the parallel\_reduce method.
+Specifically, two primary lambda functions were defined: one for mapping and another for reducing.
+The mapping lambda function is responsible for incrementing the count for the character under examination.
+The reducing function, on the other hand, handles the merging of results.
 \subsubsection{Encoding phase}
-This phase is implemented through the ParallelFor construct of FastFlow,
-either for simplicity and to have a somewhat fair comparison with the thread version.
-The body of the parallel for is basically the same as the one in the thread version.
-An alternative version could have been implemented using the \textbf{ff\_Farm} pattern.
-This would have required the definition of an Emitter as a instance of
-\textbf{ff\_monode\ t} which creates Task objects containing details about the
-the portion of the sequence to be encoded. The collector would insert the
-resulting chunks in the final result.
-
+The implementation of this phase utilizes the ParallelFor construct of FastFlow.
+This approach was chosen both for its simplicity and have a sort of fair comparison
+with the threaded version. The body of the parallel for is essentially identical
+to that in the threaded version.
+An alternative implementation could have utilized the \textbf{ff\_Farm} pattern.
+This would have necessitated the definition of an Emitter as an instance of \textbf{ff\_monode\ t}.
+This instance would create Task objects containing details about the portion of the sequence to be
+encoded. Subsequently, the collector would incorporate the resulting chunks into the final result.
+This approach requires a certain amount more of code to be written. Moreover, The ParallelFor
+construct is built on top of a Farm building block, therefore the performance should be similar.
 
 \section{Benchmark}
-In this section will present the results of the tests performed.
-The tests were run on a dual-socket
-NUMA AMD EPYC 7301 machine, 16 cores/32 threads each, for a total of 64hw
-threads.
-Every version of the huffman algorithm was tested with the \textbf{jemalloc} library.
+This section presents the results from the conducted tests. The tests were executed on a dual-socket NUMA
+AMD EPYC 7301 machine, equipped with 16 cores and 32 threads each, totaling 64 hardware threads.
+For each thread count, the execution time was measured five times, and the average time was calculated.
+Each version of the Huffman algorithm was tested in conjunction with the \textbf{jemalloc} library.
 The application is compiled with the -O3 flag.
 \subsection{50kb file}
-Theoretically, the speedup on such a light file should be very low.
+Theoretically, the speedup on such a lightweight file should be very low.
 The obtained results in fact confirm this hypothesis: The overhead derived
 from the setup of the parallelization overcomes the sequential execution time.
 With the thread version, we can observe that only up to 2 threads a small speedup is achieved ($\approx 1.2$).
 Then, the execution time increases as the number of threads increases.
-With the FastFlow there is not even a speedup. The introduced overheads of setting
-up the communication channels and moving data around completely overwhelms the sequential version.
+With the FastFlow there is not even a speedup. The introduced overheads
+for setting up the parallelization and moving data around completely overwhelms the sequential version.
 \begin{figure}[H]
     \begin{subfigure}{0.5\textwidth}
         \centering
@@ -166,26 +174,28 @@ up the communication channels and moving data around completely overwhelms the s
 With a reasonable large file size, the benefits provided by the parallelization emerge.
 The threads version reaches a peak speedup of $\approx 16$ with 64 threads,
 whereas the FastFlow version obtains a speedup of $\approx 12$ with 32 threads.
-This smaller speedup is likely caused by FastFlow communication channels having to deal with finer and
-finer computations as the number of worker increases.
-If a word-level implementation were considered, FastFlow's performance would likely reach or exceed the
-speeds of the thread implementation.
+The observed smaller speedup is likely a result of FastFlow's communication channels managing
+increasingly granular computations as the number of workers escalates.
+If we were to consider a word-level implementation,
+it's probable that FastFlow's performance would match or even surpass that of the threaded implementation.
 Moreover, we can observe that the jemalloc library doesn't provide concrete benefits
 and starting from a certain number of threads it even worsen the performance.
-
-\begin{table}[h]
-\centering
-\begin{tabular}{|c|c|c|c|c|}
-\hline
-Implementation & Workers & Time (no I/0) & Time (I/O) \\
-\hline
-Sequential & Data 1.2 & Data 1.3 & c & c \\
-Threads & Data 2.2 & Data 2.3 & c & c \\
-FastFlow & Data 3.2 & Data 3.3 & c & c \\
-\hline
-\end{tabular}
-\caption{Your table caption}
-\label{tab:my_label}
+As forecasted, the I/O operations turned out to be very expensive and if
+we consider the total time accounting for them, the speedup drops significantly.
+Example metrics are shown in table \ref{tab:measurements}.
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|c|c|c|}
+        \hline
+        Implementation & Workers & Time (I/0) & Time (no I/O) \\
+        \hline
+        Sequential     & -       & 2748534    & 1645368       \\
+        Threads        & 64      & 1192910    & 99086         \\
+        FastFlow       & 32      & 1207970    & 131287        \\
+        \hline
+    \end{tabular}
+    \caption{Example measurements for 50mb file}
+    \label{tab:measurements}
 \end{table}
 
 \begin{figure}[H]
@@ -216,12 +226,20 @@ make
 
 and then the program can be used as follows:
 \begin{verbatim}
-./huffman_seq <input_file> <output_file> <seq|t|ff> <n_threads>
+./HuffmanProject <input_file> <output_file> <seq|t|ff> <n_threads>
 \end{verbatim}
 
 The script for running the benchmarks is \textbf{measurements.sh}.
+It can be executed as follows:
+\begin{verbatim}
+    ./measurements.sh <file> jemalloc
+\end{verbatim}
 
+The Plot script is \textbf{plot.py} and can be executed as follows:
+\begin{verbatim}
+    python3 plot.py
+\end{verbatim}
 
-
-
+The resulting figures are saved in the \textbf{figures} folder.
+You should install the matplotlib, numpy and pandas libraries to run the script.
 \end{document}
