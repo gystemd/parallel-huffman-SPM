@@ -36,7 +36,6 @@ mv measurements/seq.csv measurements/seq-nojemalloc.csv
 mv measurements/threads.csv measurements/threads-nojemalloc.csv
 mv measurements/ff.csv measurements/ff-nojemalloc.csv
 
-export LD_PRELOAD=/usr/local/lib/libjemalloc.so
 
 echo "Running sequential (jemalloc) \n"
 for i in 1 2 3 4 5
