@@ -20,8 +20,9 @@ std::unordered_map<char, unsigned int> huffman_thread::count_frequency(
     auto start = tid * (text.length() / num_threads);
     auto end = (tid + 1) * (text.length() / num_threads);
     if (tid == num_threads - 1) end = text.length();
-
-    for (size_t i = start; i < end; i++) partial_freqs[tid][text[i]]++;
+    std::unordered_map<char, unsigned int> partial_freq;
+    for (size_t i = start; i < end; i++) partial_freq[text[i]]++;
+    partial_freqs[tid] = partial_freq;
   };
 
   for (size_t i = 0; i < num_threads; i++) threads[i] = std::thread(map, i);

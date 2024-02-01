@@ -17,21 +17,22 @@
 \tableofcontents
 \break
 \section{Problem statement}
-The huffman algorithm is a lossless compression algorithm that uses a variable length code table
-for encoding a source symbol. The code table is derived from the probability of occurrence for each
-possible value of the source symbol. The most frequent symbol is encoded with the shortest code
-and the least frequent symbol is encoded with the longest code.
-The Huffman Algorithm can be divided into four macro steps:
+The Huffman algorithm is a lossless data compression algorithm that employs a variable-length
+code table for encoding source symbols. This code table is derived from the probability of
+occurrence of each possible value of the source symbol. In this scheme, the most frequently
+occurring symbol is encoded with the shortest code, while the least frequent symbol receives the
+longest code. The Huffman algorithm can be broadly divided into four major steps:
 \begin{enumerate}
     \item Frequency counting: The first operation to be performed is generating the frequency map of the characters in the input sequence.
           The time complexity of this operation is $O(n)$, where $n$ is the length of the input sequence.
-    \item Huffman Tree generation: the tree is built by iteratively picking the two nodes with the lowest frequency and connect them to a parent node.
+    \item Huffman Tree generation: The tree is built by iteratively picking the two nodes with the lowest frequency and connect them to a parent node.
           In this way, the characters with higher frequency are matched with a node closer to the root of the tree and consequently
           in the encoding it will result in shorter code. The most appropriate data structure to
-          support this step is a priority queue, which allows to retrieve the nodes with the lowest frequency in $O(1)$ time and to insert a new node in $O(log(m))$ time.
+          support this step is a priority queue, which allows to retrieve the nodes with the lowest
+          frequency in $O(1)$ time and to insert a new node in $O(log(m))$ time.
           Therefore, the time complexity of this step is $O(mlog(m))$, where $m$ is the number of different characters in the input sequence. Since
           we are dealing with ASCII characters, $m$ is at most 256 and therefore the time complexity is constant.
-    \item Code generation: This phase saves the huffman codes produced by the previous step in a hashmap. This
+    \item Code generation: This phase saves the huffman codes produced by the previous step in a hashmap. It
           is done to avoid traversing the Huffman tree for every character in the input sequence and providing fast access to the codes.
           The time complexity of this step is $O(m)$.
     \item Encoding: The last step is the actual encoding of the input sequence. This is done by traversing the input sequence and
@@ -136,7 +137,7 @@ This would have necessitated the definition of an Emitter as an instance of \tex
 This instance would create Task objects containing details about the portion of the sequence to be
 encoded. Subsequently, the collector would incorporate the resulting chunks into the final result.
 This approach requires a certain amount more of code to be written. Moreover, The ParallelFor
-construct is built on top of a Farm building block, therefore the performance should be similar.
+construct is built on top of a Farm building block, therefore the performance should be comparable.
 
 \section{Benchmark}
 This section presents the results from the conducted tests. The tests were executed on a dual-socket NUMA
@@ -153,21 +154,21 @@ Then, the execution time increases as the number of threads increases.
 With the FastFlow there is not even a speedup. The introduced overheads
 for setting up the parallelization and moving data around completely overwhelms the sequential version.
 \begin{figure}[H]
-    \begin{subfigure}{0.5\textwidth}
+    \begin{subfigure}{0.6\textwidth}
         \centering
         \includegraphics[width=1\textwidth]{figures/64k/speedup.png}
         \caption{speedup with 50kb file}
     \end{subfigure}
-    \begin{subfigure}{0.5\textwidth}
+    \begin{subfigure}{0.6\textwidth}
         \centering
         \includegraphics[width=1\textwidth]{figures/64k/efficiency.png}
         \caption{efficiency with 50kb file}
     \end{subfigure}
-    \begin{subfigure}{0.5\textwidth}
+\end{figure}
+\begin{figure}[H]
         \centering
-        \includegraphics[width=1\textwidth]{figures/64k/total-time.png}
+        \includegraphics[width=0.7\textwidth]{figures/64k/total-time.png}
         \caption{execution time with 50kb file}
-    \end{subfigure}
 \end{figure}
 
 \subsection{50MB file}
@@ -217,6 +218,12 @@ Example metrics are shown in table \ref{tab:measurements}.
 \end{figure}
 
 \break
+\section {Conclusions}
+The obtained results confirm the I/O operations hinder the performance of the huffman encoding.
+Future work could be done to improve the performance of the I/O operations.
+Actually their performance also largely depends on the underlying storage system and
+the underlying operating system.
+
 \section{Compilation}
 It is possible to compile the project by running the following commands:
 \begin{verbatim}
