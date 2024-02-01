@@ -25,13 +25,10 @@ std::unordered_map<char, unsigned int> huffman_thread::count_frequency(
     for (size_t i = start; i < end; i++) partial_freqs[tid][text[i]]++;
   };
 
-  // Create and start the threads.
   for (size_t i = 0; i < num_threads; i++) threads[i] = std::thread(map, i);
 
-  // Wait for all threads to finish.
   for (auto &t : threads) t.join();
 
-  // Merge the partial frequency maps into the result map.
   for (auto &partial_freq : partial_freqs)
     for (auto &it : partial_freq) result[it.first] += it.second;
 
