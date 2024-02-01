@@ -27,9 +27,9 @@ unordered_map<char, unsigned int> huffman_ff::count_frequency(string& text) {
   return frequency;
 }
 
-encoded_t* huffman_ff::encode_string(unordered_map<char, vector<bool>*>& codes,
+encoded_data* huffman_ff::encode_string(unordered_map<char, vector<bool>*>& codes,
                                      string& text) {
-  auto encoded_chunks = new encoded_t(num_threads);
+  auto encoded_chunks = new encoded_data(num_threads);
   ParallelFor pf(num_threads);
 
   auto map = [&](const long start, const long stop, const int thid) {

@@ -52,7 +52,7 @@ Furthermore, it provides a straightforward method for implementing new (parallel
 The functions to be specialized are:
 \begin{itemize}
     \item \begin{verbatim}
-virtual encoded_t* encode_string(
+virtual encoded_data* encode_string(
       std::unordered_map<char, std::vector<bool>*>& codes,
       std::string &text) = 0;
 \end{verbatim}
@@ -75,7 +75,7 @@ The purpose of the pointers instead is to avoid unnecessary data copying or move
 For storing the encoded sequence I used a data structure with the following type
 
 \begin{verbatim}
-typedef std::vector<std::vector<std::vector<bool>*>*> encoded_t;
+typedef std::vector<std::vector<std::vector<bool>*>*> encoded_data;
 \end{verbatim}
 
 The inner vector represents a

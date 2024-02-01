@@ -129,7 +129,7 @@ std::unordered_map<char, std::vector<bool> *> huffman_base::build_codes(
  * vectors of boolean values, where each boolean represents a bit.
  * @param output_file The name of the file to write the encoded data to.
  */
-void huffman_base::write_file(encoded_t &encoded, std::string output_file) {
+void huffman_base::write_file(encoded_data &encoded, std::string output_file) {
   std::ofstream out(output_file, std::ios::binary);
   if (!out.is_open())
     throw std::runtime_error("Could not open file: " + output_file);

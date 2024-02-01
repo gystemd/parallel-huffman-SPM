@@ -7,8 +7,7 @@
  * Counts the frequency of each character in a string using multithreading.
  * @param text The string to count the character frequencies in.
  * @return A map where each key-value pair represents a character and its
- * frequency.
- */
+ * frequency. */
 std::unordered_map<char, unsigned int> huffman_thread::count_frequency(
     std::string &text) {
   std::unordered_map<char, unsigned int> partial_freqs[num_threads];
@@ -35,11 +34,11 @@ std::unordered_map<char, unsigned int> huffman_thread::count_frequency(
   return result;
 }
 
-encoded_t *huffman_thread::encode_string(
+encoded_data *huffman_thread::encode_string(
     std::unordered_map<char, std::vector<bool> *> &codes, std::string &text) {
   std::vector<std::thread> threads(num_threads);
   auto size = text.length();
-  auto encoded_chunks = new encoded_t(num_threads);
+  auto encoded_chunks = new encoded_data(num_threads);
 
   auto encode_executor = [&](size_t tid) {
     auto chunk_size = size / num_threads;

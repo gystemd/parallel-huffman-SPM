@@ -4,7 +4,7 @@ class huffman_thread : public huffman_base {
  public:
   std::unordered_map<char, unsigned int> count_frequency(
       std::string &text) override;
-  virtual encoded_t *encode_string(
+  virtual encoded_data *encode_string(
       std::unordered_map<char, std::vector<bool> *> &codes,
       std::string &text) override;
 
