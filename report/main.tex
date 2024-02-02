@@ -106,7 +106,7 @@ frequency map. The reduce phase is not parallelized:
 In our particular scenario, given that we are working with a maximum of 256 characters (ASCII),
 this phase entails the summation of up to 256 integers from each mapper.
 This operation is relatively lightweight and the benefits of parallelization are negligible
-or even detrimental.
+or might even be detrimental.
 \subsubsection{Encoding phase}
 Building upon the previously described data structure, this phase employs a standard map pattern.
 The input sequence is statically divided into chunks, with each thread independently processing a
@@ -137,7 +137,7 @@ This would have necessitated the definition of an Emitter as an instance of \tex
 This instance would create Task objects containing details about the portion of the sequence to be
 encoded. Subsequently, the collector would incorporate the resulting chunks into the final result.
 This approach requires a certain amount more of code to be written. Moreover, The ParallelFor
-construct is built on top of a Farm building block, therefore the performance should be comparable.
+construct is based on the farm building block, therefore the performance should be comparable.
 
 \section{Benchmark}
 This section presents the results from the conducted tests. The tests were executed on a dual-socket NUMA
@@ -157,18 +157,18 @@ for setting up the parallelization and moving data around completely overwhelms 
     \begin{subfigure}{0.6\textwidth}
         \centering
         \includegraphics[width=1\textwidth]{figures/64k/speedup.png}
-        \caption{speedup with 50kb file}
+        \caption{speedup with 50kb file (no I/O)}
     \end{subfigure}
     \begin{subfigure}{0.6\textwidth}
         \centering
         \includegraphics[width=1\textwidth]{figures/64k/efficiency.png}
-        \caption{efficiency with 50kb file}
+        \caption{efficiency with 50kb file (no I/O)}
     \end{subfigure}
 \end{figure}
 \begin{figure}[H]
         \centering
         \includegraphics[width=0.7\textwidth]{figures/64k/total-time.png}
-        \caption{execution time with 50kb file}
+        \caption{execution time with 50kb file (no I/O)}
 \end{figure}
 
 \subsection{50MB file}
@@ -177,9 +177,12 @@ The threads version reaches a peak speedup of $\approx 16$ with 64 threads,
 whereas the FastFlow version obtains a speedup of $\approx 12$ with 32 threads.
 The observed smaller speedup is likely a result of FastFlow's communication channels managing
 increasingly granular computations as the number of workers escalates.
-If we were to consider a word-level implementation,
-it's probable that FastFlow's performance would match or even surpass that of the threaded implementation.
-Moreover, we can observe that the jemalloc library doesn't provide concrete benefits
+Moreover, this graph has been produced with the flag \textbf{NO\_DEFAULT\_MAPPING}
+compile option, which
+disables the default thread mapping provided by FastFlow and put the OS in charge to perform it.
+With this option, it might be the case that the FastFlow nodes are moved from one core to another
+during the execution and this is a additional overhead since a context switch in envolved.
+We can observe that the jemalloc library doesn't provide concrete benefits
 and starting from a certain number of threads it even worsen the performance.
 As forecasted, the I/O operations turned out to be very expensive and if
 we consider the total time accounting for them, the speedup drops significantly.
@@ -200,29 +203,67 @@ Example metrics are shown in table \ref{tab:measurements}.
 \end{table}
 
 \begin{figure}[H]
-    \begin{subfigure}{0.5\textwidth}
+    \begin{subfigure}{0.6\textwidth}
         \centering
         \includegraphics[width=1\textwidth]{figures/64M/speedup.png}
-        \caption{speedup with 50mb file}
+        \caption{speedup with 50mb file (no I/O)}
+        \label{fig:speedup-50mb}
     \end{subfigure}
-    \begin{subfigure}{0.5\textwidth}
+    \begin{subfigure}{0.6\textwidth}
         \centering
         \includegraphics[width=1\textwidth]{figures/64M/efficiency.png}
-        \caption{efficiency with 50mb file}
-    \end{subfigure}
-    \begin{subfigure}{0.5\textwidth}
-        \centering
-        \includegraphics[width=1\textwidth]{figures/64M/total-time.png}
-        \caption{execution time with 50mb file}
+        \caption{efficiency with 50mb file (no I/O)}
+        \label{fig:efficiency-50mb}
     \end{subfigure}
 \end{figure}
+\begin{figure}[H]
+        \centering
+        \includegraphics[width=0.6\textwidth]{figures/64M/total-time.png}
+        \caption{execution time with 50mb file (no I/O)}
+        \label{fig:total-time-50mb}
+\end{figure}
 
-\break
+\subsection{50MB file - default thread mapping}
+The performance tests has been conducted also using the default thread mapping provided by FastFlow.
+We observe in figure  \ref{fig:speedup-nomap} that the FastFlow implementation experiences a significant decrease in speedup beyond 16 threads.
+This suggests that the default thread mapping may not be optimally configured for NUMA architecture,
+leading to inefficient memory access patterns and subsequently to a degradation in performance.
+NUMA architectures have multiple memory nodes with varying access speeds depending on the proximity to the processing unit.
+The observed performance drop could be due to thread contention or memory bandwidth saturation when multiple threads access
+non-local memory simultaneously.
+Notably, the integration of the jemalloc memory allocator yields a substantial improvement,
+with the speedup exceeding that of the standard threaded version.
+The enhanced performance is likely attributable to jemalloc's NUMA-awareness,
+which enables it to allocate memory closer to the executing threads, reducing latency and increasing memory access speed.
+
+\begin{figure}[H]
+    \begin{subfigure}{0.6\textwidth}
+        \centering
+        \includegraphics[width=1\textwidth]{figures/64M-nomap/speedup.png}
+        \caption{speedup with 50mb file (no I/O)}
+        \label{fig:speedup-nomap}
+    \end{subfigure}
+    \begin{subfigure}{0.6\textwidth}
+        \centering
+        \includegraphics[width=1\textwidth]{figures/64M-nomap/efficiency.png}
+        \caption{efficiency with 50mb file (no I/O)}
+        \label{fig:efficiency-nomap}
+    \end{subfigure}
+\end{figure}
+\begin{figure}[H]
+        \centering
+        \includegraphics[width=0.7\textwidth]{figures/64M-nomap/total-time.png}
+        \caption{execution time with 50mb file (no I/O)}
+        \label{fig:total-time-nomap}
+\end{figure}
+
 \section {Conclusions}
-The obtained results confirm the I/O operations hinder the performance of the huffman encoding.
-Future work could be done to improve the performance of the I/O operations.
-Actually their performance also largely depends on the underlying storage system and
-the underlying operating system.
+This project has provided a comprehensive overview of the various aspects involved in parallel programming.
+Memory management plays a crucial role in the performance of a parallel application, and understanding the
+underlying architecture of the machine executing the application is equally important. The results obtained
+confirm that I/O operations can significantly impact the performance of Huffman encoding. Future work could
+focus on enhancing the performance of these I/O operations. However, it's important to note that their performance
+is also largely dependent on the underlying storage system.
 
 \section{Compilation}
 It is possible to compile the project by running the following commands:
@@ -230,23 +271,20 @@ It is possible to compile the project by running the following commands:
 cmake .
 make
 \end{verbatim}
-
 and then the program can be used as follows:
 \begin{verbatim}
 ./HuffmanProject <input_file> <output_file> <seq|t|ff> <n_threads>
 \end{verbatim}
-
 The script for running the benchmarks is \textbf{measurements.sh}.
 It can be executed as follows:
 \begin{verbatim}
     ./measurements.sh <file> jemalloc
 \end{verbatim}
-
+the benchmarks are saved in the \textbf{measurements} folder.
 The Plot script is \textbf{plot.py} and can be executed as follows:
 \begin{verbatim}
     python3 plot.py
 \end{verbatim}
-
 The resulting figures are saved in the \textbf{figures} folder.
 You should install the matplotlib, numpy and pandas libraries to run the script.
 \end{document}
