@@ -5,6 +5,7 @@
 \usepackage{amsmath}
 \usepackage{float}
 \usepackage{subcaption}
+\usepackage{hyperref}
 
 \title{Parallel Huffman}
 \author{Giulio Piva}
@@ -147,35 +148,38 @@ Each version of the Huffman algorithm was tested in conjunction with the \textbf
 The application is compiled with the -O3 flag.
 \subsection{50kb file}
 Theoretically, the speedup on such a lightweight file should be very low.
-The obtained results in fact confirm this hypothesis: The overhead derived
+The obtained results depicted in figure \ref{fig:50kb} in fact confirm this hypothesis: The overhead derived
 from the setup of the parallelization overcomes the sequential execution time.
 With the thread version, we can observe that only up to 2 threads a small speedup is achieved ($\approx 1.2$).
 Then, the execution time increases as the number of threads increases.
 With FastFlow there is not even a speedup with this file. The introduced overheads
-for setting up the parallelization and moving data around overwhelms the time of sequential version.
+for setting up the parallelization and moving data around leads to a performance decrease
+with respect to the sequential version.
 \begin{figure}[H]
     \begin{subfigure}{0.6\textwidth}
         \centering
         \includegraphics[width=1\textwidth]{figures/64k/speedup.png}
-        \caption{speedup with 50kb file (no I/O)}
+        \caption{speedup with 50 kb file (no I/O)}
     \end{subfigure}
     \begin{subfigure}{0.6\textwidth}
         \centering
         \includegraphics[width=1\textwidth]{figures/64k/efficiency.png}
-        \caption{efficiency with 50kb file (no I/O)}
+        \caption{efficiency with 50 kb file (no I/O)}
     \end{subfigure}
-\end{figure}
-\begin{figure}[H]
+    \begin{subfigure}{0.6\textwidth}
         \centering
-        \includegraphics[width=0.7\textwidth]{figures/64k/total-time.png}
-        \caption{execution time with 50kb file (no I/O)}
+        \includegraphics[width=1\textwidth]{figures/64k/total-time.png}
+        \caption{execution time ($\mu s$) with 50 kb file (no I/O)}
+    \end{subfigure}
+    \caption{Metrics for 50 kb file}
+    \label{fig:50kb}
 \end{figure}
 
 \subsection{50MB file}
 With a reasonable large file size, the benefits provided by the parallelization emerge.
-The threads version reaches a peak speedup of $\approx 15$ with 64 threads,
+We observe in figure \ref{fig:50mb} that the threads version reaches a peak speedup of $\approx 15$ with 64 threads,
 whereas the FastFlow version obtains a speedup of $\approx 12$ with 32 threads.
-The observed smaller speedup is likely a result of FastFlow's communication channels managing
+The observed smaller speedup might be a result of FastFlow's communication channels managing
 increasingly granular computations as the number of workers escalates.
 Moreover, this graph has been produced with the flag \textbf{NO\_DEFAULT\_MAPPING}
 compile option, which
@@ -202,30 +206,32 @@ Example metrics are shown in table \ref{tab:measurements}.
     \label{tab:measurements}
 \end{table}
 
-\begin{figure}[H]
+\begin{figure}
     \begin{subfigure}{0.6\textwidth}
         \centering
         \includegraphics[width=1\textwidth]{figures/64M/speedup.png}
-        \caption{speedup with 50mb file (no I/O)}
+        \caption{speedup with 50 MB file (no I/O)}
         \label{fig:speedup-50mb}
     \end{subfigure}
     \begin{subfigure}{0.6\textwidth}
         \centering
         \includegraphics[width=1\textwidth]{figures/64M/efficiency.png}
-        \caption{efficiency with 50mb file (no I/O)}
+        \caption{efficiency with 50 MB file (no I/O)}
         \label{fig:efficiency-50mb}
     \end{subfigure}
-\end{figure}
-\begin{figure}[H]
+    \begin{subfigure}{0.6\textwidth}
         \centering
-        \includegraphics[width=0.6\textwidth]{figures/64M/total-time.png}
-        \caption{execution time with 50mb file (no I/O)}
+        \includegraphics[width=1\textwidth]{figures/64M/total-time.png}
+        \caption{execution time ($\mu s$) with 50 MB file (no I/O)}
         \label{fig:total-time-50mb}
+    \end{subfigure}
+    \caption{Metrics for 50 MB file}
+    \label{fig:50mb}
 \end{figure}
 
 \subsection{50MB file - default thread mapping}
 The performance tests has been conducted also using the default thread mapping provided by FastFlow.
-We observe in figure  \ref{fig:speedup-nomap} that the FastFlow implementation experiences a significant decrease in speedup beyond 16 threads.
+We observe in figure  \hyperref[fig:speedup-nomap]{Figure \ref*{fig:speedup-nomap}} that the FastFlow implementation experiences a significant decrease in speedup beyond 16 threads.
 This suggests that the default thread mapping may not be optimally configured for NUMA architecture,
 leading to inefficient memory access patterns and subsequently to a degradation in performance.
 NUMA architectures have multiple memory nodes with varying access speeds depending on the proximity to the processing unit.
@@ -236,25 +242,27 @@ with the speedup exceeding that of the standard threaded version.
 The enhanced performance is likely attributable to jemalloc's NUMA-awareness,
 which enables it to allocate memory closer to the executing threads, reducing latency and increasing memory access speed.
 
-\begin{figure}[H]
+\begin{figure}
     \begin{subfigure}{0.6\textwidth}
         \centering
         \includegraphics[width=1\textwidth]{figures/64M-nomap/speedup.png}
-        \caption{speedup with 50mb file (no I/O)}
+        \caption{speedup with 50 MB file (no I/O)}
         \label{fig:speedup-nomap}
     \end{subfigure}
     \begin{subfigure}{0.6\textwidth}
         \centering
         \includegraphics[width=1\textwidth]{figures/64M-nomap/efficiency.png}
-        \caption{efficiency with 50mb file (no I/O)}
+        \caption{efficiency with 50 MB file (no I/O)}
         \label{fig:efficiency-nomap}
     \end{subfigure}
-\end{figure}
-\begin{figure}[H]
+    \begin {subfigure}{0.6\textwidth}
         \centering
-        \includegraphics[width=0.7\textwidth]{figures/64M-nomap/total-time.png}
-        \caption{execution time with 50mb file (no I/O)}
+        \includegraphics[width=1\textwidth]{figures/64M-nomap/total-time.png}
+        \caption{execution time ($\mu s$) with 50 MB file (no I/O)}
         \label{fig:total-time-nomap}
+    \end{subfigure}
+    \caption{Metrics for 50 MB file with default thread mapping}
+    \label{fig:50mb-nomap}
 \end{figure}
 
 \section {Conclusions}
@@ -281,6 +289,8 @@ It can be executed as follows:
     ./measurements.sh <file> <jemalloc\_path>
 \end{verbatim}
 the benchmarks are saved in the \textbf{measurements} folder.
+If you want to test the correctness of the encoding you should uncomment the \textit{add\_definitions(-DDECODE)} option in the CMakeLists.txt file
+and recompile the project.
 The Plot script is \textbf{plot.py} and can be executed as follows:
 \begin{verbatim}
     python3 plot.py
