@@ -143,9 +143,9 @@ void huffman_base::write_file(encoded_data &encoded, std::string output_file) {
   for (const auto &chunk : encoded) {
     for (const auto &code : *chunk) {
       for (auto bit : *code) {
-        // a byte may contain bits from different codes to fully exploit the
-        // compression. Therefore we need to keep track of how many bits we have
-        // already written up to now.
+        /* a byte may contain bits from different codes to fully exploit the
+         compression. Therefore we need to keep track of how many bits we have
+         already written up to now.  */
         byte |= (bit << current_bits);
         current_bits++;
         if (current_bits == 8) {
