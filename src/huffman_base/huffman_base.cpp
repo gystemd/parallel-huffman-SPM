@@ -20,14 +20,17 @@
  * @return The content of the file as a string.
  */
 std::string huffman_base::read_file(std::string input_file) {
-  std::ifstream in(input_file);
-  std::string seq;
+  std::ifstream file(input_file);
+  if (!file.is_open()) {
+    std::cerr << "Could not open the file at: " + input_file << std::endl;
+    exit(EXIT_FAILURE);
+  }
 
-  if (!in.is_open())
-    throw std::runtime_error("Could not open file: " + input_file);
-  getline(in, seq);
-  in.close();
-  return seq;
+  std::stringstream buffer;
+  buffer << file.rdbuf();
+  file.close();
+
+  return buffer.str();
 }
 
 /**
@@ -213,16 +216,19 @@ std::string huffman_base::decode(const std::vector<bool> &encoded,
   auto node = root;
 
   for (auto b : encoded) {
-    // Move to the right child if the current bit is 1, or the left child if it's 0
+    // Move to the right child if the current bit is 1, or the left child if
+    // it's 0
     if (b)
       node = node->right;
     else
       node = node->left;
 
-    // If we've reached a leaf node (which contains a character), add the character to the decoded string
+    // If we've reached a leaf node (which contains a character), add the
+    // character to the decoded string
     if (node->data != '\0') {
       decoded.push_back(node->data);
-      // After adding a character to the decoded string, return to the root of the Huffman tree
+      // After adding a character to the decoded string, return to the root of
+      // the Huffman tree
       node = root;
     }
   }
