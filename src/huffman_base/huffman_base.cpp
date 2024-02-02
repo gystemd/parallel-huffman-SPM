@@ -14,11 +14,10 @@
 #include "unordered_map"
 
 /**
- * Reads the content of the file to compress as a string.
+ * Reads the content of the file to compress.
  *
  * @param input_file The name of the file to read.
  * @return The content of the file as a string.
- * @throws std::runtime_error If the file could not be opened.
  */
 std::string huffman_base::read_file(std::string input_file) {
   std::ifstream in(input_file);
@@ -200,21 +199,35 @@ std::string huffman_base::decode_file(std::string input_file,
   return decode(*encoded, root);
 }
 
+/**
+ * Decodes a Huffman-encoded string.
+ *
+ * @param encoded A vector of booleans representing the Huffman-encoded data.
+ * @param root The root of the Huffman tree used for decoding.
+ * @return The decoded string.
+ */
 std::string huffman_base::decode(const std::vector<bool> &encoded,
                                  const huffman_base::huffman_node *root) {
   std::string decoded = "";
+
   auto node = root;
+
   for (auto b : encoded) {
+    // Move to the right child if the current bit is 1, or the left child if it's 0
     if (b)
       node = node->right;
     else
       node = node->left;
 
+    // If we've reached a leaf node (which contains a character), add the character to the decoded string
     if (node->data != '\0') {
       decoded.push_back(node->data);
+      // After adding a character to the decoded string, return to the root of the Huffman tree
       node = root;
     }
   }
+
+  // Return the decoded string
   return decoded;
 }
 
@@ -232,6 +245,9 @@ void huffman_base::write_benchmark() {
   file.close();
 }
 
+/**
+ * Runs the Huffman encoding algorithm and writes the encoded data to a file.
+ */
 void huffman_base::run() {
   {
     utimer timer("read", &read_time);

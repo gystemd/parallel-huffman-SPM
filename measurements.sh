@@ -18,7 +18,7 @@ for i in 2 4 8 16 32 64 128
 do
     for j in 1 2 3 4 5
     do
-        echo "Running threads version with $i threads"
+        echo "Running $i threads version"
         ./HuffmanProject $file_name binary t $i
     done
 done

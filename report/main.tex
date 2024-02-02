@@ -18,8 +18,8 @@
 \break
 \section{Problem statement}
 The Huffman algorithm is a lossless data compression algorithm that employs a variable-length
-code table for encoding source symbols. This code table is derived from the probability of
-occurrence of each possible value of the source symbol. In this scheme, the most frequently
+code table for encoding a sequence. This code table is derived from the probability of
+occurrence of each distinct symbol in the input. In this scheme, the most frequently
 occurring symbol is encoded with the shortest code, while the least frequent symbol receives the
 longest code. The Huffman algorithm can be broadly divided into four major steps:
 \begin{enumerate}
@@ -45,8 +45,8 @@ In the following sections, I will describe the parallelization strategies adopte
 
 \section{Implementation}
 This project employs the template design pattern. The primary class, \textbf{huffman\_base}, outlines the algorithm's structure.
-This base class specifies the sequence of function executions, while the parallel functions are defined as pure virtual functions.
-It also incorporates boilerplate code for file reading and writing, thereby eliminating code duplication.
+This base class specifies the sequence of function executions, where the parallel functions are defined as pure virtual functions.
+It also incorporates boilerplate code for file reading and writing (binary) files, thereby eliminating code duplication.
 For each variant of the algorithm, a distinct class has been created: \textbf{huffman\_sequential}, \textbf{huffman\_thread}, and \textbf{huffman\_ff}.
 This design pattern aligns naturally with the project's requirements, as the same algorithm needs to be implemented in different ways.
 Furthermore, it provides a straightforward method for implementing new (parallel) versions of the algorithm.
@@ -93,7 +93,7 @@ will produce a vector composed of a single chunk (the whole sequence encoded).
 This datastructure provides also advantages in terms of memory access.
 In a NUMA system (the reference architecture for this project), each processor (or core) has its own local memory,
 and accessing this local memory is faster than accessing memory that is local to another processor.
-Having a small vector also enhances the chances of the data being stored in the cache.
+Having a small vector also enhances the chances of the data being stored in the some level of cache.
 
 \subsection{Thread version}
 \subsubsection{Frequency counting}
@@ -134,8 +134,8 @@ with the threaded version. The body of the parallel for is essentially identical
 to that in the threaded version.
 An alternative implementation could have utilized the \textbf{ff\_Farm} pattern.
 This would have necessitated the definition of an Emitter as an instance of \textbf{ff\_monode\ t}.
-This instance would create Task objects containing details about the portion of the sequence to be
-encoded. Subsequently, the collector would incorporate the resulting chunks into the final result.
+This instance would create an object of type \textbf{Task} containing details about the portion of the sequence to be
+encoded by a worker. Subsequently, A \textbf{Collector} object would collect the chunks produced by the workers into the final result.
 This approach requires a certain amount more of code to be written. Moreover, The ParallelFor
 construct is based on the farm building block, therefore the performances should be comparable.
 
@@ -151,8 +151,8 @@ The obtained results in fact confirm this hypothesis: The overhead derived
 from the setup of the parallelization overcomes the sequential execution time.
 With the thread version, we can observe that only up to 2 threads a small speedup is achieved ($\approx 1.2$).
 Then, the execution time increases as the number of threads increases.
-With the FastFlow there is not even a speedup. The introduced overheads
-for setting up the parallelization and moving data around completely overwhelms the sequential version.
+With FastFlow there is not even a speedup with this file. The introduced overheads
+for setting up the parallelization and moving data around overwhelms the time of sequential version.
 \begin{figure}[H]
     \begin{subfigure}{0.6\textwidth}
         \centering
@@ -173,7 +173,7 @@ for setting up the parallelization and moving data around completely overwhelms 
 
 \subsection{50MB file}
 With a reasonable large file size, the benefits provided by the parallelization emerge.
-The threads version reaches a peak speedup of $\approx 16$ with 64 threads,
+The threads version reaches a peak speedup of $\approx 15$ with 64 threads,
 whereas the FastFlow version obtains a speedup of $\approx 12$ with 32 threads.
 The observed smaller speedup is likely a result of FastFlow's communication channels managing
 increasingly granular computations as the number of workers escalates.
@@ -278,7 +278,7 @@ and then the program can be used as follows:
 The script for running the benchmarks is \textbf{measurements.sh}.
 It can be executed as follows:
 \begin{verbatim}
-    ./measurements.sh <file> jemalloc
+    ./measurements.sh <file> <jemalloc\_path>
 \end{verbatim}
 the benchmarks are saved in the \textbf{measurements} folder.
 The Plot script is \textbf{plot.py} and can be executed as follows:
