@@ -2,8 +2,12 @@
 
 class huffman_seq : public huffman_base {
  public:
-  std::unordered_map<char, unsigned int> count_frequency() override;
-  encoded_t* encode_string() override;
+  std::unordered_map<char, unsigned int> count_frequency(
+      std::string& text) override;
+  virtual encoded_data* encode_string(
+      std::unordered_map<char, std::vector<bool>*>& codes,
+      std::string& text) override;
+
   huffman_seq(std::string input_file, std::string output_file)
       : huffman_base(input_file, output_file) {
     benchmark_file = "measurements/seq.csv";

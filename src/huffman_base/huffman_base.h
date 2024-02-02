@@ -12,7 +12,7 @@
 #ifndef HUFFMAN_BASE_H
 #define HUFFMAN_BASE_H
 
-typedef std::vector<std::vector<std::vector<bool>*>*> encoded_t;
+typedef std::vector<std::vector<std::vector<bool>*>*> encoded_data;
 
 class huffman_base {
   struct huffman_node {
@@ -24,52 +24,45 @@ class huffman_base {
         : data(data), frequency(frequency), left(nullptr), right(nullptr) {}
   };
 
- protected:
-  std::string input_file, output_file, text, decoded, benchmark_file;
-  encoded_t* encoded;
+ private:
+  std::string input_file, output_file, text, decoded;
+
+  encoded_data* encoded;
   std::unordered_map<char, unsigned int> freq;
   huffman_node* root;
   std::unordered_map<char, std::vector<bool>*> codes;
+
   long read_time, frequency_time, tree_time, code_time, encode_time, write_time;
   long total_time, total_time_nio;
+
+  std::string read_file(std::string input_file);
+  virtual std::unordered_map<char, unsigned int> count_frequency(
+      std::string& text) = 0;
+  huffman_node* build_tree(std::unordered_map<char, unsigned int>& freq);
+  std::unordered_map<char, std::vector<bool>*> build_codes(huffman_node* root);
+  virtual encoded_data* encode_string(
+      std::unordered_map<char, std::vector<bool>*>& codes,
+      std::string& text) = 0;
+  void write_file(encoded_data& encoded, std::string output_file);
+  std::string decode(const std::vector<bool>& encoded,
+                     const huffman_base::huffman_node* root);
+
+ protected:
   int num_threads;
+  std::string benchmark_file;
 
  public:
   huffman_base(std::string input_file, std::string output_file)
       : input_file(input_file), output_file(output_file) {}
 
-  huffman_node* build_tree();
-  std::string read_file();
-  std::string read_encoded_file();
-  std::unordered_map<char, std::vector<bool>*> build_codes();
-  std::string decode();
   void run();
-  void write_file();
 
-  virtual std::unordered_map<char, unsigned int> count_frequency() = 0;
-  virtual encoded_t* encode_string() = 0;
-
-  // virtual ~huffman_base() {
-  //   if (root) {
-  //     std::function<void(huffman_node*)> delete_tree = [&](huffman_node*
-  //     node) {
-  //       if (!node) return;
-  //       delete_tree(node->left);
-  //       delete_tree(node->right);
-  //       delete node;
-  //     };
-  //     delete_tree(root);
-  //   }
-  //   if (encoded) {
-  //     for (auto& v : *encoded) {
-  //       for (auto& code : *v) delete code;
-  //       delete v;
-  //     }
-  //     delete encoded;
-  //   }
-  // }
+  std::string decode_file(std::string input_file, const huffman_node* root);
+  virtual ~huffman_base();
 
   void write_benchmark();
+  huffman_node* get_root() { return root; }
+  std::string get_text() { return text; }
 };
 
 #endif  // HUFFMAN_BASE_H
