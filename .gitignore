@@ -10,6 +10,7 @@ measurements/*
 !measurements/.gitkeep
 report/*
 !report/main.tex
+!report/main.pdf
 HuffmanProject
 binary
 plot-remote.sh
