@@ -45,7 +45,7 @@ For large input sequences, we can expect them to become primary sources of bottl
 In the following sections, I will describe the parallelization strategies adopted to overcome these bottlenecks.
 
 \section{Implementation}
-This project employs the template design pattern. The primary class, \textbf{huffman\_base}, outlines the algorithm's structure.
+This project employs the template design pattern \footnote{\url{https://en.wikipedia.org/wiki/Template_method_pattern}}. The primary class, \textbf{huffman\_base}, outlines the algorithm's structure.
 This base class specifies the sequence of function executions, where the parallel functions are defined as pure virtual functions.
 It also incorporates boilerplate code for file reading and writing (binary) files, thereby eliminating code duplication.
 For each variant of the algorithm, a distinct class has been created: \textbf{huffman\_sequential}, \textbf{huffman\_thread}, and \textbf{huffman\_ff}.
