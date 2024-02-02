@@ -32,7 +32,7 @@ longest code. The Huffman algorithm can be broadly divided into four major steps
           support this step is a priority queue, which allows to retrieve the nodes with the lowest
           frequency in $O(1)$ time and to insert a new node in $O(log(m))$ time.
           Therefore, the time complexity of this step is $O(mlog(m))$, where $m$ is the number of different characters in the input sequence. Since
-          we are dealing with ASCII characters, $m$ is at most 256 and therefore the time complexity is constant.
+          we are dealing with ASCII characters, $m$ is at most 128 and therefore the time complexity is constant.
     \item Code generation: This phase saves the huffman codes produced by the previous step in a hashmap. It
           is done to avoid traversing the Huffman tree for every character in the input sequence and providing fast access to the codes.
           The time complexity of this step is $O(m)$.
@@ -104,8 +104,8 @@ the input sequence to compute a partial frequency map.
 When all the threads have finished their task and are joined together,
 the produced partial frequency maps are merged together to obtain the final
 frequency map. The reduce phase is not parallelized:
-In our particular scenario, given that we are working with a maximum of 256 characters (ASCII),
-this phase entails the summation of up to 256 integers from each mapper.
+In our particular scenario, given that we are working with a maximum of 128 characters (ASCII),
+this phase entails the summation of up to 128 integers from each mapper.
 This operation is relatively lightweight and the benefits of parallelization are negligible
 or might even be detrimental.
 \subsubsection{Encoding phase}
