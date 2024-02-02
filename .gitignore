@@ -5,6 +5,7 @@ cmake_install.cmake
 CMakeCache.txt
 Makefile
 figures/*
+!figures/.gitkeep
 measurements/*
 !measurements/.gitkeep
 report/*

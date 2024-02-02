@@ -16,7 +16,9 @@ encoded_data* huffman_seq::encode_string(
   encoded_data* encoded = new encoded_data();
   std::vector<std::vector<bool>*>* encoded_chunk =
       new std::vector<std::vector<bool>*>();
+
   for (char c : text) encoded_chunk->push_back(codes[c]);
   encoded->push_back(encoded_chunk);
+
   return encoded;
 }
